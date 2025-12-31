@@ -17,7 +17,7 @@ export class SvgRenderer {
     this.nodesLayer = this.draw.group();
     this.viewport = this.draw.group();
 
-    // this.draw.viewbox(0, 0, 1000, 1000);
+    // this.draw.viewbox(0, 0, 800, 500);
     
   }
 

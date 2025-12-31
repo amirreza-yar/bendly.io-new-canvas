@@ -3,7 +3,7 @@ import { createStore } from "zustand/vanilla";
 import type { GraphData } from "../types/types";
 import { hasEdgeCrossing } from "../engine/helpers";
 
-export type State = {
+export type StoreState = {
   data: GraphData | null;
   setData: (data: GraphData) => void;
 
@@ -15,7 +15,7 @@ export type State = {
   zoom: number;
   setTransform: (zoom: number, panX: number, panY: number) => void;
 
-  viewBox: { x: number; y: number; width: number; height: number };
+  viewBox: { x: number; y: number; width: number; height: number } | null;
   setViewBox: (v: {
     x: number;
     y: number;
@@ -34,7 +34,7 @@ export type State = {
   rollbackHistory: () => void;
 };
 
-export const graphStore = createStore<State>((set, get) => ({
+export const graphStore = createStore<StoreState>((set, get) => ({
   data: null,
   setData: (data) => set({ data }),
 
@@ -46,7 +46,7 @@ export const graphStore = createStore<State>((set, get) => ({
   zoom: 1,
   setTransform: (zoom, panX, panY) => set({ zoom, panX, panY }),
 
-  viewBox: { x: 0, y: 0, width: 500, height: 500 },
+  viewBox: null,
   setViewBox: (v) => set({ viewBox: v }),
 
   history: [],
