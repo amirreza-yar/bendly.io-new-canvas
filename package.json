@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@svgdotjs/svg.js": "^3.2.5",
+    "@svgdotjs/svg.panzoom.js": "^2.1.2",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zustand": "^5.0.9"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
