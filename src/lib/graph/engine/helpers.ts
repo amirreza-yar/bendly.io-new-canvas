@@ -1,15 +1,14 @@
-
 import { GraphData, Point } from "../types/types";
 import { segmentsIntersect } from "./geometry";
+import { type Svg } from "@svgdotjs/svg.js";
 
 export function getEdges(data: GraphData) {
-  const map = new Map(data.nodes.map((n) => [n.node_id, n]));
   const edges: { a: Point; b: Point; aId: string; bId: string }[] = [];
 
-  for (const n of data.nodes) {
-    if (!n.next_node_id) continue;
-    const to = map.get(n.next_node_id);
-    if (!to) continue;
+  data.nodes.forEach((n) => {
+    if (!n.next_node_id) return;
+    const to = data.nodes.get(n.next_node_id);
+    if (!to) return;
 
     edges.push({
       a: { x: n.x, y: n.y },
@@ -17,7 +16,7 @@ export function getEdges(data: GraphData) {
       aId: n.node_id,
       bId: to.node_id,
     });
-  }
+  });
 
   return edges;
 }
@@ -48,15 +47,30 @@ export function hasEdgeCrossing(data: GraphData): boolean {
   return false;
 }
 
-
-export function getViewBox(draw: any) {
+export function getViewBox(draw: Svg) {
   // svg.js .viewbox() returns an object { x, y, width, height }
   return draw.viewbox();
 }
 
-export function screenToWorld(clientX: number, clientY: number, container: HTMLElement, draw: any) {
-  const rect = container.getBoundingClientRect();
-  const vb = getViewBox(draw);
+export function shortId(length = 6): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/[+/=]/g, "")
+    .slice(0, length);
+}
+
+// Convert screen clientX/clientY -> world coords according to current viewBox
+export function screenToWorld(
+  clientX: number,
+  clientY: number,
+  rect: DOMRect,
+  vb: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
+) {
   const sx = clientX - rect.left;
   const sy = clientY - rect.top;
   return {
@@ -65,11 +79,20 @@ export function screenToWorld(clientX: number, clientY: number, container: HTMLE
   };
 }
 
-export function worldToScreen(wx: number, wy: number, container: HTMLElement, draw: any) {
-  const rect = container.getBoundingClientRect();
-  const vb = getViewBox(draw);
+// Convert world -> screen (useful for overlays)
+export function worldToScreen(
+  wx: number,
+  wy: number,
+  rect: DOMRect,
+  vb: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }
+) {
   return {
-    x: ((wx - vb.x) / vb.width) * rect.width + rect.left,
-    y: ((wy - vb.y) / vb.height) * rect.height + rect.top,
+    x: rect.left + ((wx - vb.x) / vb.width) * rect.width,
+    y: rect.top + ((wy - vb.y) / vb.height) * rect.height,
   };
 }

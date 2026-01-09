@@ -1,24 +1,40 @@
-import { SvgRenderer } from "../engine/renderer"
+import { G } from "@svgdotjs/svg.js";
+import { SvgRenderer } from "../engine/renderer";
 
 export type Point = { x: number; y: number };
 
 // engine/types.ts
 export type Node = {
-  node_id: string
-  x: number
-  y: number
-  next_node_id?: string
-  prev_node_id?: string
-}
+  node_id: string;
+  x: number;
+  y: number;
+  next_node_id?: string;
+  prev_node_id?: string;
+};
 
 export type GraphData = {
-  nodes: Node[]
-}
+  nodes: Map<string, Node>;
+};
 
 export interface Mode {
   name: string;
-  onPointerDown?(e: PointerEvent, world: {x: number, y: number}): void;
-  onPointerMove?(e: PointerEvent, world: {x: number, y: number}): void;
-  onPointerUp?(e: PointerEvent, world: {x: number, y: number}): void;
+  isPanAllowed: boolean;
+
+  nodeObject(g: G, node?: Node, render?: () => void): void;
+  edgeObject(g: G, node: Node, to: Node, render?: () => void): void;
+
+  onAction?(): void;
+
+  onPointerDown?(
+    e: PointerEvent,
+    world: { x: number; y: number }
+  ): { isPanAllowed: boolean } | void;
+  onPointerMove?(e: PointerEvent, world: { x: number; y: number }): void;
+  onPointerUp?(e: PointerEvent, world: { x: number; y: number }): void;
   onRender?(renderer: SvgRenderer, data: GraphData): void; // optional special visuals
 }
+
+export type ScreenToWorld = (
+  clientX: number,
+  clientY: number
+) => { x: number; y: number };

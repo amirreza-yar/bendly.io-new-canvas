@@ -37,6 +37,8 @@ import { DrawMode } from "@/lib/graph/engine/modes/draw";
 import { MoveMode } from "@/lib/graph/engine/modes/move";
 import { graphStore } from "@/lib/graph/store/store";
 import { useGraphStore } from "@/lib/graph/store/useStore";
+import { IdleMode } from "@/lib/graph/engine/modes/idle";
+import { RemoveMode } from "@/lib/graph/engine/modes/remove";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -45,6 +47,7 @@ export default function GraphPage() {
   const activeMode = useGraphStore((s) => s.activeMode);
   const canUndo = useGraphStore((s) => s.history.length > 0);
   const canRedo = useGraphStore((s) => s.future.length > 0);
+  const canDoModeAction = useGraphStore((s) => s.canDoModeAction);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -56,17 +59,56 @@ export default function GraphPage() {
     engine.current = eng;
 
     // initialize some data
-    graphStore.setState({ data: { nodes: [] } });
+    // graphStore.setState({
+    //   data: {
+    //     nodes: new Map(
+    //       [
+    //         {
+    //           key: "clxmj2",
+    //           value: {
+    //             node_id: "clxmj2",
+    //             x: 74,
+    //             y: 218,
+    //             next_node_id: "6SKhAo",
+    //           },
+    //         },
+    //         {
+    //           key: "6SKhAo",
+    //           value: {
+    //             node_id: "6SKhAo",
+    //             x: 223,
+    //             y: 625,
+    //             next_node_id: "SfTDhC",
+    //             prev_node_id: "clxmj2",
+    //           },
+    //         },
+    //         {
+    //           key: "SfTDhC",
+    //           value: {
+    //             node_id: "SfTDhC",
+    //             x: 441,
+    //             y: 464,
+    //             prev_node_id: "6SKhAo",
+    //           },
+    //         },
+    //       ].map((n) => [n.key, n.value])
+    //     ),
+    //   },
+    // });
+
+    graphStore.setState({ data: { nodes: new Map() } });
 
     return () => {
       eng.destroy();
     };
   }, []);
 
-  const switchMode = (mode: "draw" | "move") => {
+  const switchMode = (mode: "draw" | "move" | "remove" | "idle") => {
     if (!engine.current || !containerRef.current) return;
+    if (mode === "idle") engine.current.setMode(new IdleMode());
     if (mode === "draw") engine.current.setMode(new DrawMode());
     if (mode === "move") engine.current.setMode(new MoveMode());
+    if (mode === "remove") engine.current.setMode(new RemoveMode());
   };
 
   return (
@@ -76,24 +118,51 @@ export default function GraphPage() {
         className="absolute top-3 left-3 p-2 space-x-1"
       >
         <button
-          className={`${
-            activeMode === "draw" ? "bg-blue-500" : "bg-red-500"
+          className={`text-black ${
+            activeMode === "draw" ? "bg-blue-500" : "bg-gray-200"
           } p-2`}
-          onClick={() => switchMode("draw")}
+          onClick={() => {
+            if (graphStore.getState().activeMode === "draw") {
+              switchMode("idle");
+            } else {
+              switchMode("draw");
+            }
+          }}
         >
           Draw
         </button>
         <button
-          className={`${
-            activeMode === "move" ? "bg-blue-500" : "bg-red-500"
+          className={`text-black ${
+            activeMode === "move" ? "bg-blue-500" : "bg-gray-200"
           } p-2`}
-          onClick={() => switchMode("move")}
+          onClick={() => {
+            if (graphStore.getState().activeMode === "move") {
+              switchMode("idle");
+            } else {
+              switchMode("move");
+            }
+          }}
         >
           Move
         </button>
+
+        <button
+          className={`text-black ${
+            activeMode === "remove" ? "bg-blue-500" : "bg-gray-200"
+          } p-2`}
+          onClick={() => {
+            if (graphStore.getState().activeMode === "remove") {
+              switchMode("idle");
+            } else {
+              switchMode("remove");
+            }
+          }}
+        >
+          Remove
+        </button>
       </div>
 
-      <div className="absolute top-3 right-3 p-2 space-x-1">
+      <div className="absolute top-3 right-4 p-2 space-x-1">
         <button
           className="bg-black p-2 disabled:bg-gray-400"
           disabled={!canUndo}
@@ -110,6 +179,16 @@ export default function GraphPage() {
           Redo
         </button>
       </div>
+
+      {activeMode === 'remove' && <div className="absolute bottom-3 right-3 p-2 space-x-1">
+        <button
+          className="bg-red-500 p-2 disabled:bg-red-200"
+          disabled={!canDoModeAction}
+          onClick={() => engine.current?.activeMode.onAction()}
+        >
+          Remove Selected Lines
+        </button>
+      </div>}
 
       <div
         ref={containerRef}

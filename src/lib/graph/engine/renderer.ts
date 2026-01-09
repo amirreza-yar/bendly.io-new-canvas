@@ -1,6 +1,6 @@
 // engine/renderer.ts
 import { G, SVG, type Svg } from "@svgdotjs/svg.js";
-import type { GraphData } from "../types/types";
+import type { GraphData, Mode } from "../types/types";
 import "@svgdotjs/svg.panzoom.js";
 
 export class SvgRenderer {
@@ -16,65 +16,57 @@ export class SvgRenderer {
     this.edgesLayer = this.draw.group();
     this.nodesLayer = this.draw.group();
     this.viewport = this.draw.group();
-
-    // this.draw.viewbox(0, 0, 800, 500);
-    
   }
 
   setViewBox(x: number, y: number, width: number, height: number) {
     this.draw.viewbox(x, y, width, height);
   }
 
-  render(data: GraphData) {
+  render(data: GraphData, activeMode: Mode) {
     this.edgesLayer.clear();
     this.nodesLayer.clear();
 
-    const map = new Map(data.nodes.map((n) => [n.node_id, n]));
+    data.nodes?.forEach((node) => {
+      if (!node.next_node_id) return;
+      const g = this.edgesLayer.group();
+      const to = data.nodes.get(node.next_node_id);
+      if (!to) return;
 
-    // edges
-    for (const node of data.nodes) {
-      if (!node.next_node_id) continue;
-      const to = map.get(node.next_node_id);
-      if (!to) continue;
+      activeMode.edgeObject(g, node, to);
+    });
 
-      // visible line
-      const visible = this.edgesLayer
-        .line(node.x, node.y, to.x, to.y)
-        .stroke({ width: 2, color: "#444", linecap: "round", dasharray: "10" });
-
-      // hit area (invisible but wide)
-      const HIT_WIDTH = 18; // adjust for easier clicking/touch
-      this.edgesLayer
-        .line(node.x, node.y, to.x, to.y)
-        .stroke({ width: HIT_WIDTH, color: "#f0f", opacity: 50 }) // invisible
-        .attr({ "pointer-events": "stroke" }) // ensure stroke receives events
-        .data("edgeId", `${node.node_id}-${to.node_id}`);
-      // .on("click", () => {
-      //   this.selectedEdgeId = `${node.node_id}-${to.node_id}`;
-      //   // update visible stroke to indicate selection
-      //   visible.stroke({ color: "#f00" });
-      // });
-
-      // ensure visible line stays on top
-      visible.front();
-    }
-
-    // nodes
-    for (const node of data.nodes) {
+    data.nodes?.forEach((node) => {
       const g = this.nodesLayer.group();
       g.translate(node.x, node.y);
 
-      g.circle(40)
-        .center(0, 0)
-        .fill(this.selectedNodeId === node.node_id ? "#f0f" : "#fff")
-        .stroke({ width: 2, color: "#222" });
+      activeMode.nodeObject(g, node);
+    });
 
-      //   circle.click(() => {
-      //     this.selectedNodeId = node.node_id;
-      //     this.render(data); // re-render to update selection
-      //   });
+    // nodes
+    // for (const node of data.nodes?.values().toArray()) {
+    //   const g = this.nodesLayer.group();
+    //   g.translate(node.x, node.y);
 
-      //   g.text(node.node_id).font({ size: 12 }).center(0, 0);
-    }
+    //   g.circle(40)
+    //     .center(0, 0)
+    //     .fill("#00000000")
+    //     .stroke({ width: 2, color: "#222" })
+    //     .on("mousedown", () => {
+
+    //     })
+    //     .on("mousemove", () => {
+
+    //     })
+    //     .on("mouseenter", () => {
+
+    //     });
+
+    //   //   circle.click(() => {
+    //   //     this.selectedNodeId = node.node_id;
+    //   //     this.render(data); // re-render to update selection
+    //   //   });
+
+    //   //   g.text(node.node_id).font({ size: 12 }).center(0, 0);
+    // }
   }
 }

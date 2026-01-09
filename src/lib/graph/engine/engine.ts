@@ -59,8 +59,14 @@ export class Engine {
 
     // subscribe to store: render + apply viewBox from store
     this.unsubStore = graphStore.subscribe((state) => {
-      if (state.data && state.viewBox) this.renderer.render(state.data);
-      // store must provide viewBox: { x,y,width,height }
+      if (state.data && state.viewBox)
+        this.renderer.render(state.data, this.activeMode!);
+
+      if (state.data && state.triggerRender){
+        this.renderer.render(state.data, this.activeMode!);
+        state.setTriggerRender(false)
+      }
+
       const vb = (state as StoreState).viewBox;
       if (vb !== null) {
         this.renderer.setViewBox(vb.x, vb.y, vb.width, vb.height);
@@ -140,9 +146,6 @@ export class Engine {
     graphStore.getState().setMode(mode.name);
   }
 
-  // -------------------------
-  // coordinate helpers (viewBox)
-  // -------------------------
   private getViewBox() {
     return (graphStore.getState() as StoreState).viewBox as {
       x: number;
@@ -195,11 +198,31 @@ export class Engine {
           y: (a.clientY + b.clientY) / 2,
         },
       };
+
+      const vb = this.getViewBox();
+      this.isPanning = true;
+      this.panStart = {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        vbX: vb.x,
+        vbY: vb.y,
+      };
+      try {
+        (e.target as Element).setPointerCapture(e.pointerId);
+      } catch {}
+
       return;
     }
 
+    // otherwise forward to active mode with world coords
+    const world = this.screenToWorld(e.clientX, e.clientY);
+
+    this.activeMode?.onPointerDown?.(e, world);
+
+    if (!this.activeMode?.isPanAllowed) return;
+
     // start pan if middle mouse OR Space key held
-    if (e.button === 1 || this.spaceDown) {
+    if (e.pointerType === "touch" || e.button === 1) {
       const vb = this.getViewBox();
       this.isPanning = true;
       this.panStart = {
@@ -213,10 +236,6 @@ export class Engine {
       } catch {}
       return;
     }
-
-    // otherwise forward to active mode with world coords
-    const world = this.screenToWorld(e.clientX, e.clientY);
-    this.activeMode?.onPointerDown?.(e, world);
   }
 
   private handlePointerMoveEvent(e: PointerEvent) {
