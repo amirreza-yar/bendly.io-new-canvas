@@ -23,7 +23,8 @@ export interface Mode {
   nodeObject(g: G, node?: Node, render?: () => void): void;
   edgeObject(g: G, node: Node, to: Node, render?: () => void): void;
 
-  onAction?(): void;
+  // eslint-disable-next-line
+  onAction?(p?: any): void;
 
   onPointerDown?(
     e: PointerEvent,

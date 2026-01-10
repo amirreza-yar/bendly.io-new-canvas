@@ -83,11 +83,11 @@ export class DrawMode extends BaseMode {
     const id = shortId();
 
     const firstNode = nodes.get(
-      nodes?.values().find((n) => n.prev_node_id === undefined)?.node_id ?? ""
+      nodes?.values()?.find((n) => n.prev_node_id === undefined)?.node_id ?? ""
     );
 
     const lastNode = nodes.get(
-      nodes?.values().find((n) => n.next_node_id === undefined)?.node_id ?? ""
+      nodes?.values()?.find((n) => n.next_node_id === undefined)?.node_id ?? ""
     );
 
     if (state.drawDirection) {

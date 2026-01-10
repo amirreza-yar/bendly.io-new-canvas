@@ -126,6 +126,7 @@ export const graphStore = createStore<StoreState>((set, get) => ({
     undoLock = true;
 
     const { history, data, future } = get();
+
     if (!data || history.length === 0) {
       undoLock = false;
       return;
