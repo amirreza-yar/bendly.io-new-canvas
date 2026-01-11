@@ -1,4 +1,3 @@
-// engine/renderer.ts
 import { G, SVG, type Svg } from "@svgdotjs/svg.js";
 import type { GraphData, Mode } from "../types/types";
 import "@svgdotjs/svg.panzoom.js";
@@ -41,32 +40,5 @@ export class SvgRenderer {
 
       activeMode.nodeObject(g, node);
     });
-
-    // nodes
-    // for (const node of data.nodes?.values().toArray()) {
-    //   const g = this.nodesLayer.group();
-    //   g.translate(node.x, node.y);
-
-    //   g.circle(40)
-    //     .center(0, 0)
-    //     .fill("#00000000")
-    //     .stroke({ width: 2, color: "#222" })
-    //     .on("mousedown", () => {
-
-    //     })
-    //     .on("mousemove", () => {
-
-    //     })
-    //     .on("mouseenter", () => {
-
-    //     });
-
-    //   //   circle.click(() => {
-    //   //     this.selectedNodeId = node.node_id;
-    //   //     this.render(data); // re-render to update selection
-    //   //   });
-
-    //   //   g.text(node.node_id).font({ size: 12 }).center(0, 0);
-    // }
   }
 }

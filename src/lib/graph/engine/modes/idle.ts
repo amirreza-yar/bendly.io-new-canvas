@@ -14,7 +14,8 @@ export class IdleMode implements Mode {
     this.NODE_RADIUS = state.NODE_RADIUS;
   }
 
-  nodeObject(g: G, node: Node) {
+  // eslint-disable-next-line
+  nodeObject(g: G, _: Node) {
     g.circle(this.NODE_RADIUS).center(0, 0).fill("#000");
   }
 

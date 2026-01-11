@@ -39,15 +39,17 @@ import { graphStore } from "@/lib/graph/store/store";
 import { useGraphStore } from "@/lib/graph/store/useStore";
 import { IdleMode } from "@/lib/graph/engine/modes/idle";
 import { RemoveMode } from "@/lib/graph/engine/modes/remove";
+import { ResizeMode } from "@/lib/graph/engine/modes/resize";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const engine = useRef<Engine | null>(null);
+  const engine = useRef<Engine>(null);
 
   const activeMode = useGraphStore((s) => s.activeMode);
   const canUndo = useGraphStore((s) => s.history.length > 0);
   const canRedo = useGraphStore((s) => s.future.length > 0);
   const canDoModeAction = useGraphStore((s) => s.canDoModeAction);
+  const modeMeta = useGraphStore((s) => s.modeMeta)
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -59,42 +61,11 @@ export default function GraphPage() {
     engine.current = eng;
 
     // initialize some data
-    // graphStore.setState({
-    //   data: {
-    //     nodes: new Map(
-    //       [
-    //         {
-    //           key: "clxmj2",
-    //           value: {
-    //             node_id: "clxmj2",
-    //             x: 74,
-    //             y: 218,
-    //             next_node_id: "6SKhAo",
-    //           },
-    //         },
-    //         {
-    //           key: "6SKhAo",
-    //           value: {
-    //             node_id: "6SKhAo",
-    //             x: 223,
-    //             y: 625,
-    //             next_node_id: "SfTDhC",
-    //             prev_node_id: "clxmj2",
-    //           },
-    //         },
-    //         {
-    //           key: "SfTDhC",
-    //           value: {
-    //             node_id: "SfTDhC",
-    //             x: 441,
-    //             y: 464,
-    //             prev_node_id: "6SKhAo",
-    //           },
-    //         },
-    //       ].map((n) => [n.key, n.value])
-    //     ),
-    //   },
-    // });
+    graphStore.setState({
+      data: {
+        nodes: new Map(),
+      },
+    });
 
     graphStore.setState({ data: { nodes: new Map() } });
 
@@ -103,12 +74,13 @@ export default function GraphPage() {
     };
   }, []);
 
-  const switchMode = (mode: "draw" | "move" | "remove" | "idle") => {
+  const switchMode = (mode: "draw" | "move" | "remove" | "resize" | "idle") => {
     if (!engine.current || !containerRef.current) return;
     if (mode === "idle") engine.current.setMode(new IdleMode());
     if (mode === "draw") engine.current.setMode(new DrawMode());
     if (mode === "move") engine.current.setMode(new MoveMode());
     if (mode === "remove") engine.current.setMode(new RemoveMode());
+    if (mode === "resize") engine.current.setMode(new ResizeMode());
   };
 
   return (
@@ -160,6 +132,21 @@ export default function GraphPage() {
         >
           Remove
         </button>
+
+        <button
+          className={`text-black ${
+            activeMode === "resize" ? "bg-blue-500" : "bg-gray-200"
+          } p-2`}
+          onClick={() => {
+            if (graphStore.getState().activeMode === "resize") {
+              switchMode("idle");
+            } else {
+              switchMode("resize");
+            }
+          }}
+        >
+          Resize
+        </button>
       </div>
 
       <div className="absolute top-3 right-4 p-2 space-x-1">
@@ -180,15 +167,37 @@ export default function GraphPage() {
         </button>
       </div>
 
-      {activeMode === 'remove' && <div className="absolute bottom-3 right-3 p-2 space-x-1">
-        <button
-          className="bg-red-500 p-2 disabled:bg-red-200"
-          disabled={!canDoModeAction}
-          onClick={() => engine.current?.activeMode.onAction()}
-        >
-          Remove Selected Lines
-        </button>
-      </div>}
+      {activeMode === "remove" && (
+        <div className="absolute bottom-3 right-3 p-2 space-x-1">
+          <button
+            className="bg-red-500 p-2 disabled:bg-red-200"
+            disabled={!canDoModeAction}
+            onClick={() => {
+              // @ts-expect-error active mode will have onAction for remove
+              engine.current?.activeMode?.onAction();
+            }}
+          >
+            Remove Selected Lines
+          </button>
+        </div>
+      )}
+
+      {activeMode === "resize" && (
+        <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
+          <input defaultValue={modeMeta} id="resize-input" type="number" placeholder="Type desired value" className=" bg-white text-black" />
+          <button
+            className="bg-red-500 p-2 disabled:bg-red-200"
+            disabled={!canDoModeAction}
+            onClick={() => {
+              const resizeInput = document.getElementById("resize-input")
+              // @ts-expect-error active mode will have onAction for resize
+              engine.current?.activeMode?.onAction(resizeInput?.value);
+            }}
+          >
+            Resize
+          </button>
+        </div>
+      )}
 
       <div
         ref={containerRef}

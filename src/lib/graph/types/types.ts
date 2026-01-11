@@ -3,7 +3,6 @@ import { SvgRenderer } from "../engine/renderer";
 
 export type Point = { x: number; y: number };
 
-// engine/types.ts
 export type Node = {
   node_id: string;
   x: number;

@@ -12,6 +12,7 @@ export class RemoveMode extends BaseMode {
     super();
   }
 
+  // eslint-disable-next-line
   nodeObject(g: G, node: Node) {
     g.circle(0).center(0, 0).fill("#000").front();
   }
@@ -19,52 +20,38 @@ export class RemoveMode extends BaseMode {
   edgeObject(g: G, node: Node, to: Node) {
     const state = graphStore.getState();
 
-    if (this.selectedLines?.includes(`${node.node_id}-${to.node_id}`)) {
-      g.line(node.x, node.y, to.x, to.y)
-        .stroke({
-          width: this.LINE_STROKE_WIDTH,
-          color: "#da1616ff",
-          linecap: "round",
-          dasharray: "10",
-        })
-        .data("lineId", node.node_id);
+    const isLineSelected = this.selectedLines?.includes(
+      `${node.node_id}-${to.node_id}`
+    );
 
-      g.line(node.x, node.y, to.x, to.y)
-        .stroke({
-          width: this.LINE_HIT_WIDTH,
-          color: "#163ada55",
-          linecap: "round",
-        })
-        .on("pointerdown", () => {
+    g.line(node.x, node.y, to.x, to.y)
+      .stroke({
+        width: this.LINE_STROKE_WIDTH,
+        color: isLineSelected ? "#da1616ff" : "#000",
+        linecap: "round",
+        dasharray: isLineSelected ? "10" : "1",
+      })
+      .data("lineId", node.node_id);
+
+    g.line(node.x, node.y, to.x, to.y)
+      .stroke({
+        width: this.LINE_HIT_WIDTH,
+        color: isLineSelected ? "#163ada55" : "#da161655",
+        linecap: "round",
+      })
+      .on("pointerdown", () => {
+        if (isLineSelected) {
           this.selectedLines = this.selectedLines?.filter(
             (line) => line !== `${node.node_id}-${to.node_id}`
           );
-          state.setTriggerRender(true);
-
-          state.setCanDoModeAction(this.selectedLines.length > 0);
-        });
-    } else {
-      g.line(node.x, node.y, to.x, to.y)
-        .stroke({
-          width: this.LINE_STROKE_WIDTH,
-          color: "#000",
-          linecap: "round",
-        })
-        .data("lineId", node.node_id);
-
-      g.line(node.x, node.y, to.x, to.y)
-        .stroke({
-          width: this.LINE_HIT_WIDTH,
-          color: "#da161655",
-          linecap: "round",
-        })
-        .on("pointerdown", () => {
+        } else {
           this.selectedLines.push(`${node.node_id}-${to.node_id}`);
+        }
 
-          state.setTriggerRender(true);
-          state.setCanDoModeAction(true);
-        });
-    }
+        state.setTriggerRender(true);
+
+        state.setCanDoModeAction(this.selectedLines.length > 0);
+      });
   }
 
   onAction() {
@@ -138,35 +125,5 @@ export class RemoveMode extends BaseMode {
 
     state.commitHistory();
     state.setData({ ...state.data, nodes });
-
-    // for (const sl of this.selectedLines) {
-    //   const slNodes = sl.split("-");
-
-    //   console.log(nodes?.values(), slNodes)
-
-    //   const node1 = nodes?.get(slNodes[0]);
-    //   const node2 = nodes?.get(node1?.next_node_id ?? "");
-    //   const offsetX = node2?.x - node1?.x;
-    //   const offsetY = node2?.y - node1?.y;
-
-    //   let tragetNode = nodes?.get(node2?.next_node_id) ?? undefined;
-    //   if (tragetNode && node1 && node2) {
-    //     tragetNode.x = tragetNode.x - offsetX;
-    //     tragetNode.y = tragetNode.y - offsetY;
-
-    //     node1.next_node_id = tragetNode.node_id;
-    //     tragetNode.prev_node_id = node1?.node_id;
-    //   }
-
-    //   tragetNode = nodes?.get(tragetNode?.next_node_id) ?? undefined;
-    //   while (tragetNode) {
-    //     tragetNode.x = tragetNode.x - offsetX;
-    //     tragetNode.y = tragetNode.y - offsetY;
-
-    //     tragetNode = nodes?.get(tragetNode?.next_node_id) ?? undefined;
-    //   }
-
-    //   nodes?.delete(node2?.node_id);
-    // }
   }
 }

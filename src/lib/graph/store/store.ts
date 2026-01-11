@@ -15,6 +15,8 @@ export type StoreState = {
 
   canDoModeAction: boolean;
   setCanDoModeAction: (t: boolean) => void;
+  modeMeta: string | number | null | undefined;
+  setModeMeta: (t: string | number | null | undefined) => void;
 
   data: { nodes: Map<string, Node> } | null;
   setData: (data: { nodes: Map<string, Node> }) => void;
@@ -60,12 +62,14 @@ export const graphStore = createStore<StoreState>((set, get) => ({
   NODE_OVERLAY_RADIUS: 25,
 
   triggerRender: false,
-  setTriggerRender: (t: boolean) => {
+  setTriggerRender: (t) => {
     set({ triggerRender: t });
   },
 
   canDoModeAction: false,
-  setCanDoModeAction: (t: boolean) => set({ canDoModeAction: t }),
+  setCanDoModeAction: (t) => set({ canDoModeAction: t }),
+  modeMeta: null,
+  setModeMeta: (t) => set({ modeMeta: t }),
 
   data: null,
   setData: (data) => set({ data }),
@@ -74,7 +78,7 @@ export const graphStore = createStore<StoreState>((set, get) => ({
   setMode: (mode) => set({ activeMode: mode }),
 
   drawDirection: true,
-  setDrawDirection: (dir: boolean) => set({ drawDirection: dir }),
+  setDrawDirection: (dir) => set({ drawDirection: dir }),
 
   panX: 0,
   panY: 0,
@@ -103,8 +107,9 @@ export const graphStore = createStore<StoreState>((set, get) => ({
     }
 
     if (hasEdgeCrossing(data)) {
+      console.warn("Polygon unallowed")
       set({ data: pendingHistory, pendingHistory: null });
-      alert("Polygon unallowed");
+      // alert("Polygon unallowed");
       return;
     }
 

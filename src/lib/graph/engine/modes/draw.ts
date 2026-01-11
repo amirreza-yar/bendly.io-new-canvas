@@ -62,13 +62,6 @@ export class DrawMode extends BaseMode {
       color: "#444",
       linecap: "round",
     });
-
-    // g.line(node.x, node.y, to.x, to.y)
-    //   .stroke({ width: this.LINE_HIT_WIDTH, color: "#f0f", opacity: 50 })
-    //   .attr({ "pointer-events": "stroke" }) // ensure stroke receives events
-    //   .data("edgeId", `${node.node_id}-${to.node_id}`)
-
-    // visible.front();
   }
 
   onPointerDown(e: MouseEvent, world: { x: number; y: number }) {

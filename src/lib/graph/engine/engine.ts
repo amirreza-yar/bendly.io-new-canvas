@@ -1,4 +1,3 @@
-// engine/engine-viewbox.ts
 import { SvgRenderer } from "./renderer";
 import { graphStore, StoreState } from "../store/store";
 import { Mode } from "../types/types";

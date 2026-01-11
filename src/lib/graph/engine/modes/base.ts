@@ -1,5 +1,5 @@
 import { G } from "@svgdotjs/svg.js";
-import { graphStore, StoreState } from "../../store/store";
+import { graphStore } from "../../store/store";
 import { Mode, Node } from "../../types/types";
 
 export class BaseMode implements Mode {
@@ -20,6 +20,7 @@ export class BaseMode implements Mode {
     this.LINE_HIT_WIDTH = state.LINE_HIT_WIDTH;
   }
 
+  // eslint-disable-next-line
   nodeObject(g: G, node: Node) {
     g.circle(this.NODE_RADIUS).center(0, 0).fill("#000");
   }
