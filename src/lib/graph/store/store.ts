@@ -10,6 +10,11 @@ export type StoreState = {
   NODE_RADIUS: number;
   NODE_OVERLAY_RADIUS: number;
 
+  CRUSH_FOLD_OFFSET: number;
+  crushFoldDir: boolean;
+  startCrushFold: boolean;
+  endCrushFold: boolean;
+
   triggerRender: boolean;
   setTriggerRender: (t: boolean) => void;
 
@@ -60,6 +65,10 @@ export const graphStore = createStore<StoreState>((set, get) => ({
   NODE_HIT_WIDTH: 40,
   NODE_RADIUS: 10,
   NODE_OVERLAY_RADIUS: 25,
+  CRUSH_FOLD_OFFSET: 10,
+  crushFoldDir: false,
+  startCrushFold: true,
+  endCrushFold: true,
 
   triggerRender: false,
   setTriggerRender: (t) => {
@@ -107,7 +116,7 @@ export const graphStore = createStore<StoreState>((set, get) => ({
     }
 
     if (hasEdgeCrossing(data)) {
-      console.warn("Polygon unallowed")
+      console.warn("Polygon unallowed");
       set({ data: pendingHistory, pendingHistory: null });
       // alert("Polygon unallowed");
       return;

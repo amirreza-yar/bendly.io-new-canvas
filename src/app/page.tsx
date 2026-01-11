@@ -40,6 +40,7 @@ import { useGraphStore } from "@/lib/graph/store/useStore";
 import { IdleMode } from "@/lib/graph/engine/modes/idle";
 import { RemoveMode } from "@/lib/graph/engine/modes/remove";
 import { ResizeMode } from "@/lib/graph/engine/modes/resize";
+import { FoldMode } from "@/lib/graph/engine/modes/fold";
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -74,13 +75,14 @@ export default function GraphPage() {
     };
   }, []);
 
-  const switchMode = (mode: "draw" | "move" | "remove" | "resize" | "idle") => {
+  const switchMode = (mode: "draw" | "move" | "remove" | "resize" | "fold" | "idle") => {
     if (!engine.current || !containerRef.current) return;
     if (mode === "idle") engine.current.setMode(new IdleMode());
     if (mode === "draw") engine.current.setMode(new DrawMode());
     if (mode === "move") engine.current.setMode(new MoveMode());
     if (mode === "remove") engine.current.setMode(new RemoveMode());
     if (mode === "resize") engine.current.setMode(new ResizeMode());
+    if (mode === "fold") engine.current.setMode(new FoldMode());
   };
 
   return (
@@ -146,6 +148,20 @@ export default function GraphPage() {
           }}
         >
           Resize
+        </button>
+        <button
+          className={`text-black ${
+            activeMode === "fold" ? "bg-blue-500" : "bg-gray-200"
+          } p-2`}
+          onClick={() => {
+            if (graphStore.getState().activeMode === "fold") {
+              switchMode("idle");
+            } else {
+              switchMode("fold");
+            }
+          }}
+        >
+          Fold
         </button>
       </div>
 

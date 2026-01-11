@@ -37,7 +37,7 @@ export function segmentsIntersect(
 export function isAngleInverted(
   pNode: Node,
   baseNode: Node,
-  nNode: Node,
+  nNode: Node
 ): boolean | null {
   const ux = pNode.x - baseNode.x,
     uy = pNode.y - baseNode.y,
@@ -92,7 +92,7 @@ export function getFinalChangeAngleRad(
   pNode: Node,
   baseNode: Node,
   nNode: Node,
-   newAngle: number
+  newAngle: number
 ): number {
   const currentAngle = calculateAngle(
     pNode.x,
@@ -103,13 +103,11 @@ export function getFinalChangeAngleRad(
     nNode.y
   );
 
-  return degree2Rad(isAngleInverted(
-    pNode,
-    baseNode,
-    nNode,
-  )
-    ? newAngle - currentAngle
-    : currentAngle - newAngle);
+  return degree2Rad(
+    isAngleInverted(pNode, baseNode, nNode)
+      ? newAngle - currentAngle
+      : currentAngle - newAngle
+  );
 }
 
 export function getChangeAngleDiff(
@@ -125,11 +123,14 @@ export function getChangeAngleDiff(
   return { rotatedDX, rotatedDY };
 }
 
-export function calculateLength(
-  node1: Node,
-  node2: Node
-): number {
+export function calculateLength(node1: Node, node2: Node): number {
   return Math.round(Math.hypot(node1.x - node2.x, node1.y - node2.y));
+}
+
+export function calculateLineAngle(node1: Node, node2: Node) {
+  const dx = node2.x - node1.x;
+  const dy = node2.y - node1.y;
+  return Math.atan2(dy, dx) * (180 / Math.PI);
 }
 
 export function getChangeLengthDiff(
