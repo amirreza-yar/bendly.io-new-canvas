@@ -1,4 +1,4 @@
-import { Node, Point } from "../types/types";
+import { Node, Point } from "../../types/types";
 
 function orient(a: Point, b: Point, c: Point) {
   return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
@@ -144,4 +144,46 @@ export function getChangeLengthDiff(
     dx: (node1.x - node2.x) * (f - 1),
     dy: (node1.y - node2.y) * (f - 1),
   };
+}
+
+export function createCrushFoldCoords(
+  baseM: Node,
+  M: Node,
+  CRUSH_FOLD_OFFSET: number,
+  angle: number,
+  crushFoldDirValue: 1 | -1
+): { A1: Point; A2: Point; A3: Point; A4: Point } {
+  const A1 = {
+    y: M.y - CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
+    x: M.x - CRUSH_FOLD_OFFSET * Math.cos((angle * Math.PI) / 180),
+  };
+
+  const A2 = {
+    y:
+      A1.y +
+      CRUSH_FOLD_OFFSET *
+        Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    x:
+      A1.x +
+      CRUSH_FOLD_OFFSET *
+        Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+  };
+
+  const A3 = {
+    y:
+      M.y +
+      CRUSH_FOLD_OFFSET *
+        Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    x:
+      M.x +
+      CRUSH_FOLD_OFFSET *
+        Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+  };
+
+  const A4 = {
+    y: A3.y + CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
+    x: A3.x + CRUSH_FOLD_OFFSET * Math.cos((angle * Math.PI) / 180),
+  };
+
+  return { A1, A2, A3, A4 };
 }

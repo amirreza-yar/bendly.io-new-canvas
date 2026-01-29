@@ -123,7 +123,7 @@ export class RemoveMode extends BaseMode {
 
     this.selectedLines = [];
 
-    state.commitHistory();
     state.setData({ ...state.data, nodes });
+    state.commitHistory();
   }
 }

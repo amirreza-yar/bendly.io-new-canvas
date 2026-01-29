@@ -2,7 +2,7 @@
 Written in pure TS using `zustand`, `svg.js` and some other libs.
 
 #### TODO
- - History commiting have problem in Resize mode when polygon created
+ - History commiting have problem in Resize mode when polygon created --> RESOLVED
 
 #### To Ask Farzam
  - Whats the machines precision?

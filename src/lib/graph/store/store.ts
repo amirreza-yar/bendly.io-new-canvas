@@ -1,7 +1,7 @@
 // engine/store.ts
 import { createStore } from "zustand/vanilla";
 import type { GraphData, Node } from "../types/types";
-import { hasEdgeCrossing } from "../engine/helpers";
+import { hasEdgeCrossing } from "../engine/helpers/engine";
 
 export type StoreState = {
   LINE_HIT_WIDTH: number;
@@ -9,11 +9,7 @@ export type StoreState = {
   NODE_HIT_WIDTH: number;
   NODE_RADIUS: number;
   NODE_OVERLAY_RADIUS: number;
-
   CRUSH_FOLD_OFFSET: number;
-  crushFoldDir: boolean;
-  startCrushFold: boolean;
-  endCrushFold: boolean;
 
   triggerRender: boolean;
   setTriggerRender: (t: boolean) => void;
@@ -23,8 +19,18 @@ export type StoreState = {
   modeMeta: string | number | null | undefined;
   setModeMeta: (t: string | number | null | undefined) => void;
 
-  data: { nodes: Map<string, Node> } | null;
-  setData: (data: { nodes: Map<string, Node> }) => void;
+  data: {
+    nodes: Map<string, Node>;
+    crushFoldDir: boolean;
+    startCrushFold: boolean;
+    endCrushFold: boolean;
+  } | null;
+  setData: (data: {
+    nodes?: Map<string, Node>;
+    crushFoldDir?: boolean;
+    startCrushFold?: boolean;
+    endCrushFold?: boolean;
+  }) => void;
 
   activeMode: string;
   setMode: (mode: string) => void;
@@ -60,43 +66,41 @@ let undoLock = false;
 let redoLock = false;
 
 export const graphStore = createStore<StoreState>((set, get) => ({
+  // Base configs
   LINE_HIT_WIDTH: 30,
   LINE_STROKE_WIDTH: 3,
   NODE_HIT_WIDTH: 40,
   NODE_RADIUS: 10,
   NODE_OVERLAY_RADIUS: 25,
   CRUSH_FOLD_OFFSET: 10,
-  crushFoldDir: false,
-  startCrushFold: true,
-  endCrushFold: true,
+  drawDirection: true,
+  setDrawDirection: (dir) => set({ drawDirection: dir }),
 
+  // Rendering and Engine
   triggerRender: false,
   setTriggerRender: (t) => {
     set({ triggerRender: t });
   },
+  panX: 0,
+  panY: 0,
+  zoom: 1,
+  setTransform: (zoom, panX, panY) => set({ zoom, panX, panY }),
+  viewBox: null,
+  setViewBox: (v) => set({ viewBox: v }),
 
+  // Flashing data
+  data: null,
+  setData: (data) => set({ data }),
+
+  // Modes
+  activeMode: "draw",
+  setMode: (mode) => set({ activeMode: mode }),
   canDoModeAction: false,
   setCanDoModeAction: (t) => set({ canDoModeAction: t }),
   modeMeta: null,
   setModeMeta: (t) => set({ modeMeta: t }),
 
-  data: null,
-  setData: (data) => set({ data }),
-
-  activeMode: "draw",
-  setMode: (mode) => set({ activeMode: mode }),
-
-  drawDirection: true,
-  setDrawDirection: (dir) => set({ drawDirection: dir }),
-
-  panX: 0,
-  panY: 0,
-  zoom: 1,
-  setTransform: (zoom, panX, panY) => set({ zoom, panX, panY }),
-
-  viewBox: null,
-  setViewBox: (v) => set({ viewBox: v }),
-
+  // History and rolebacks
   history: [],
   future: [],
 
@@ -104,7 +108,7 @@ export const graphStore = createStore<StoreState>((set, get) => ({
 
   beginHistory: () => {
     const { data, pendingHistory } = get();
-    if (!data || pendingHistory) return; // <- critical
+    if (!data || pendingHistory) return;
     set({ pendingHistory: structuredClone(data) });
   },
 
