@@ -1,4 +1,4 @@
-import { GraphData, Point } from "../types/types";
+import { GraphData, Point } from "../../types/types";
 import { segmentsIntersect } from "./geometry";
 import { type Svg } from "@svgdotjs/svg.js";
 

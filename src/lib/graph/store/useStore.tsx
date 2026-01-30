@@ -1,8 +1,8 @@
 'use client'
 import { useSyncExternalStore } from "react";
-import { graphStore, State } from "./store";
+import { graphStore, StoreState } from "./store";
 
-export function useGraphStore<T>(selector: (state: State) => T) {
+export function useGraphStore<T>(selector: (state: StoreState) => T) {
   return useSyncExternalStore(
     // subscribe function
     (callback) => graphStore.subscribe(callback),

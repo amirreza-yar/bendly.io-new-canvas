@@ -8,7 +8,8 @@ import {
   getChangeAngleDiff,
   getChangeLengthDiff,
   getFinalChangeAngleRad,
-} from "../geometry";
+} from "../helpers/geometry";
+import { createCurshFoldD } from "../helpers/fold";
 
 export class ResizeMode extends BaseMode {
   name = "resize";
@@ -27,7 +28,15 @@ export class ResizeMode extends BaseMode {
     const pNode = nodes?.get(node.prev_node_id ?? "");
     const nNode = nodes?.get(node.next_node_id ?? "");
 
-    g.circle(this.NODE_RADIUS).center(0, 0).fill("#000").front();
+    const isFirstNode = node.prev_node_id === undefined;
+    const isLastNode = node.next_node_id === undefined;
+
+    if (
+      !(isFirstNode && state.data?.startCrushFold) &&
+      !(isLastNode && state.data?.endCrushFold)
+    ) {
+      g.circle(this.NODE_RADIUS).center(0, 0).fill("#000");
+    }
 
     if (nNode && pNode) {
       g.circle(this.NODE_OVERLAY_RADIUS * 2)
@@ -37,7 +46,6 @@ export class ResizeMode extends BaseMode {
           width: this.sNode === node.node_id ? this.LINE_STROKE_WIDTH : 0,
           color: "#da1616ff",
           linecap: "round",
-          dasharray: "10",
         })
         .front()
         .on("pointerdown", () => {
@@ -71,35 +79,68 @@ export class ResizeMode extends BaseMode {
     const state = graphStore.getState();
     const isSLine = this.sLine?.split("-")[0] === node.node_id;
 
-    g.line(node.x, node.y, to.x, to.y)
-      .stroke({
-        width: this.LINE_STROKE_WIDTH,
-        color: isSLine ? "#da1616ff" : "#000",
-        linecap: "round",
-        dasharray: "10",
-      })
-      .data("lineId", node.node_id);
+    const D = createCurshFoldD(node, to, state, state.CRUSH_FOLD_OFFSET);
 
-    g.line(node.x, node.y, to.x, to.y)
-      .stroke({
-        width: this.LINE_HIT_WIDTH,
-        color: isSLine ? "#163ada66" : "#da161628",
-        linecap: "round",
-      })
-      .on("pointerdown", () => {
-        if (isSLine) {
-          this.sLine = null;
-          state.setCanDoModeAction(false);
-        } else {
-          this.sLine = `${node.node_id}-${to.node_id}`;
-          console.log(calculateLength(node, to));
-          state.setModeMeta(calculateLength(node, to));
-          state.setCanDoModeAction(true);
-        }
+    if (D !== undefined) {
+      g.path(D)
+        .stroke({
+          width: this.LINE_STROKE_WIDTH,
+          color: isSLine ? "#da1616ff" : "#000",
+          linecap: "round",
+        })
+        .fill("#00000000");
 
-        this.sNode = null;
-        state.setTriggerRender(true);
-      });
+      g.path(D)
+        .stroke({
+          width: this.LINE_HIT_WIDTH,
+          color: isSLine ? "#163ada66" : "#da161628",
+          linecap: "round",
+        })
+        .fill("#00000000")
+        .on("pointerdown", () => {
+          if (isSLine) {
+            this.sLine = null;
+            state.setCanDoModeAction(false);
+          } else {
+            this.sLine = `${node.node_id}-${to.node_id}`;
+            console.log(calculateLength(node, to));
+            state.setModeMeta(calculateLength(node, to));
+            state.setCanDoModeAction(true);
+          }
+
+          this.sNode = null;
+          state.setTriggerRender(true);
+        });
+    } else {
+      g.line(node.x, node.y, to.x, to.y)
+        .stroke({
+          width: this.LINE_STROKE_WIDTH,
+          color: isSLine ? "#da1616ff" : "#000",
+          linecap: "round",
+        })
+        .data("lineId", node.node_id);
+
+      g.line(node.x, node.y, to.x, to.y)
+        .stroke({
+          width: this.LINE_HIT_WIDTH,
+          color: isSLine ? "#163ada66" : "#da161628",
+          linecap: "round",
+        })
+        .on("pointerdown", () => {
+          if (isSLine) {
+            this.sLine = null;
+            state.setCanDoModeAction(false);
+          } else {
+            this.sLine = `${node.node_id}-${to.node_id}`;
+            console.log(calculateLength(node, to));
+            state.setModeMeta(calculateLength(node, to));
+            state.setCanDoModeAction(true);
+          }
+
+          this.sNode = null;
+          state.setTriggerRender(true);
+        });
+    }
   }
 
   onAction(s: number) {
@@ -152,8 +193,8 @@ export class ResizeMode extends BaseMode {
       }
     }
 
-    state.commitHistory();
     state.setData({ ...state.data, nodes });
+    state.commitHistory();
   }
 
   // eslint-disable-next-line

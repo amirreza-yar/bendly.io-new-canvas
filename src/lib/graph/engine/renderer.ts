@@ -6,6 +6,7 @@ export class SvgRenderer {
   draw: Svg;
   nodesLayer: G;
   edgesLayer: G;
+  annotationLayer: G;
   viewport: G;
   selectedNodeId: string | null = null;
   selectedEdgeId: string | null = null;
@@ -14,6 +15,7 @@ export class SvgRenderer {
     this.draw = SVG().addTo(el).size("100%", "100%");
     this.edgesLayer = this.draw.group();
     this.nodesLayer = this.draw.group();
+    this.annotationLayer = this.draw.group();
     this.viewport = this.draw.group();
   }
 
@@ -24,6 +26,7 @@ export class SvgRenderer {
   render(data: GraphData, activeMode: Mode) {
     this.edgesLayer.clear();
     this.nodesLayer.clear();
+    this.annotationLayer.clear()
 
     data.nodes?.forEach((node) => {
       if (!node.next_node_id) return;

@@ -50,7 +50,10 @@ export default function GraphPage() {
   const canUndo = useGraphStore((s) => s.history.length > 0);
   const canRedo = useGraphStore((s) => s.future.length > 0);
   const canDoModeAction = useGraphStore((s) => s.canDoModeAction);
-  const modeMeta = useGraphStore((s) => s.modeMeta)
+  const modeMeta = useGraphStore((s) => s.modeMeta);
+  const startCrushFold = useGraphStore((s) => s.data?.startCrushFold);
+  const endCrushFold = useGraphStore((s) => s.data?.endCrushFold);
+  const crushFoldDir = useGraphStore((s) => s.data?.crushFoldDir);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -65,17 +68,20 @@ export default function GraphPage() {
     graphStore.setState({
       data: {
         nodes: new Map(),
+        startCrushFold: false,
+        endCrushFold: false,
+        crushFoldDir: false,
       },
     });
-
-    graphStore.setState({ data: { nodes: new Map() } });
 
     return () => {
       eng.destroy();
     };
   }, []);
 
-  const switchMode = (mode: "draw" | "move" | "remove" | "resize" | "fold" | "idle") => {
+  const switchMode = (
+    mode: "draw" | "move" | "remove" | "resize" | "fold" | "idle"
+  ) => {
     if (!engine.current || !containerRef.current) return;
     if (mode === "idle") engine.current.setMode(new IdleMode());
     if (mode === "draw") engine.current.setMode(new DrawMode());
@@ -200,17 +206,67 @@ export default function GraphPage() {
 
       {activeMode === "resize" && (
         <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
-          <input defaultValue={modeMeta} id="resize-input" type="number" placeholder="Type desired value" className=" bg-white text-black" />
+          <input
+            defaultValue={modeMeta ?? 0}
+            id="resize-input"
+            type="number"
+            placeholder="Type desired value"
+            className=" bg-white text-black"
+          />
           <button
             className="bg-red-500 p-2 disabled:bg-red-200"
             disabled={!canDoModeAction}
             onClick={() => {
-              const resizeInput = document.getElementById("resize-input")
+              const resizeInput = document.getElementById("resize-input");
               // @ts-expect-error active mode will have onAction for resize
               engine.current?.activeMode?.onAction(resizeInput?.value);
             }}
           >
             Resize
+          </button>
+        </div>
+      )}
+
+      {activeMode === "fold" && (
+        <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
+          <button
+            className={`p-2 text-black ${
+              startCrushFold ? "bg-blue-600" : "bg-gray-200"
+            }`}
+            onClick={() => {
+              // @ts-expect-error active mode will have onAction for resize
+              engine.current?.activeMode?.onAction({
+                startCrushFold: !startCrushFold,
+              });
+            }}
+          >
+            Start Fold
+          </button>
+          <button
+            className={`p-2 text-black ${
+              endCrushFold ? "bg-blue-600" : "bg-gray-200"
+            }`}
+            onClick={() => {
+              // @ts-expect-error active mode will have onAction for resize
+              engine.current?.activeMode?.onAction({
+                endCrushFold: !endCrushFold,
+              });
+            }}
+          >
+            End Fold
+          </button>
+          <button
+            className={`p-2 text-black ${
+              crushFoldDir ? "bg-blue-600" : "bg-gray-200"
+            }`}
+            onClick={() => {
+              // @ts-expect-error active mode will have onAction for resize
+              engine.current?.activeMode?.onAction({
+                crushFoldDir: !crushFoldDir,
+              });
+            }}
+          >
+            Fold Dir : {String(crushFoldDir)}
           </button>
         </div>
       )}

@@ -1,6 +1,6 @@
 import { graphStore } from "@/lib/graph/store/store";
 import { Node } from "@/lib/graph/types/types";
-import { shortId } from "../helpers";
+import { shortId } from "../helpers/engine";
 import { G } from "@svgdotjs/svg.js";
 import { BaseMode } from "./base";
 

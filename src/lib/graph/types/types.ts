@@ -13,6 +13,9 @@ export type Node = {
 
 export type GraphData = {
   nodes: Map<string, Node>;
+  crushFoldDir: boolean;
+  startCrushFold: boolean;
+  endCrushFold: boolean;
 };
 
 export interface Mode {
