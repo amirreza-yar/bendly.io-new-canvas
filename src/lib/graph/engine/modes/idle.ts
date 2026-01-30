@@ -1,20 +1,16 @@
 import { G } from "@svgdotjs/svg.js";
 import { graphStore } from "../../store/store";
-import { Mode, Node } from "../../types/types";
-import { calculateLineAngle } from "../helpers/geometry";
-import { generateCrushFoldState, createCurshFoldD } from "../helpers/fold";
+import { Node } from "../../types/types";
+import { createCurshFoldD } from "../helpers/fold";
+import { BaseMode } from "./base";
 
-export class IdleMode implements Mode {
+export class IdleMode extends BaseMode {
   name = "idle";
   isPanAllowed: boolean = true;
-  NODE_RADIUS: number = 10;
-  LINE_STROKE_WIDTH: number = 4;
 
   constructor() {
-    const state = graphStore.getState();
-    this.LINE_STROKE_WIDTH = state.LINE_STROKE_WIDTH;
-    this.NODE_RADIUS = state.NODE_RADIUS;
-  }
+    super()    
+  }  
 
   nodeObject(g: G, node: Node) {
     const isFirstNode = node.prev_node_id === undefined;
@@ -25,7 +21,7 @@ export class IdleMode implements Mode {
       !(isFirstNode && state.data?.startCrushFold) &&
       !(isLastNode && state.data?.endCrushFold)
     ) {
-      g.circle(this.NODE_RADIUS).center(0, 0).fill("#000");
+      g.circle(Math.max(this.NODE_RADIUS * 0.3, Math.min(this.NODE_RADIUS / state.scale, this.NODE_RADIUS * 1.5))).center(0, 0).fill("#000");
     }
   }
 
@@ -36,14 +32,14 @@ export class IdleMode implements Mode {
     if (D !== undefined) {
       g.path(D)
         .stroke({
-          width: this.LINE_STROKE_WIDTH,
+          width: Math.max(this.LINE_STROKE_WIDTH * 0.3, Math.min(this.LINE_STROKE_WIDTH / state.scale, this.LINE_STROKE_WIDTH * 1.5)),
           color: "#000",
           linecap: "round",
         })
         .fill("#00000000");
     } else {
       g.line(node.x, node.y, to.x, to.y).stroke({
-        width: this.LINE_STROKE_WIDTH,
+        width: Math.max(this.LINE_STROKE_WIDTH * 0.3, Math.min(this.LINE_STROKE_WIDTH / state.scale, this.LINE_STROKE_WIDTH * 1.5)),
         color: "#000",
         linecap: "round",
       });

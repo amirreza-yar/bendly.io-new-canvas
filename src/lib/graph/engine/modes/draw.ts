@@ -7,7 +7,7 @@ import { BaseMode } from "./base";
 export class DrawMode extends BaseMode {
   name = "draw";
   isPanAllowed: boolean = false;
-
+  
   constructor() {
     super()
   }
@@ -67,20 +67,32 @@ export class DrawMode extends BaseMode {
   onPointerDown(e: MouseEvent, world: { x: number; y: number }) {
     const state = graphStore.getState();
     if (!state.data) return;
+    const nodes = state.data.nodes;
 
     // @ts-expect-error instance exists on event traget
-    if (e.target?.instance.type !== "svg") return;
+    if (e.target?.instance.type !== "rect") return;
+
+    const gap = state.gridGap ?? 50; // fallback, be boring
+
+    const snap = (v: number) => Math.round(v / gap) * gap;
+    const snapX = snap(world.x);
+    const snapY = snap(world.y);
+
+    const exists = Array.from(nodes.values()).some(
+      node => node.x === snapX && node.y === snapY
+    );
+
+    if (exists) return
 
     state.beginHistory();
-    const nodes = state.data.nodes;
     const id = shortId();
 
     const firstNode = nodes.get(
-      nodes?.values()?.find((n) => n.prev_node_id === undefined)?.node_id ?? ""
+      Array.from(nodes.values()).find((n) => n.prev_node_id === undefined)?.node_id ?? ""
     );
 
     const lastNode = nodes.get(
-      nodes?.values()?.find((n) => n.next_node_id === undefined)?.node_id ?? ""
+      Array.from(nodes.values()).find((n) => n.next_node_id === undefined)?.node_id ?? ""
     );
 
     if (state.drawDirection) {
@@ -90,8 +102,8 @@ export class DrawMode extends BaseMode {
 
       nodes.set(id, {
         node_id: id,
-        x: world.x,
-        y: world.y,
+        x: snapX,
+        y: snapY,
         next_node_id: undefined,
         prev_node_id: lastNode?.node_id,
       });
@@ -102,8 +114,8 @@ export class DrawMode extends BaseMode {
 
       nodes.set(id, {
         node_id: id,
-        x: world.x,
-        y: world.y,
+        x: snapX,
+        y: snapY,
         next_node_id: firstNode?.node_id,
         prev_node_id: undefined,
       });

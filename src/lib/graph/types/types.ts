@@ -24,6 +24,7 @@ export interface Mode {
 
   nodeObject(g: G, node?: Node, render?: () => void): void;
   edgeObject(g: G, node: Node, to: Node, render?: () => void): void;
+  annotaionObjects?(nodes: Map<string, Node>, g: G): void;
 
   // eslint-disable-next-line
   onAction?(p?: any): void;

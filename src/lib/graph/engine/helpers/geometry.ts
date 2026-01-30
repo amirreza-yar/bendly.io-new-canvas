@@ -187,3 +187,10 @@ export function createCrushFoldCoords(
 
   return { A1, A2, A3, A4 };
 }
+
+export function snapToGrid(
+  value: number,
+  gap: number
+): number {
+  return Math.round(value / gap) * gap;
+}

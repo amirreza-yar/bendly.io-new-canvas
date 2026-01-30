@@ -10,6 +10,22 @@ export type StoreState = {
   NODE_RADIUS: number;
   NODE_OVERLAY_RADIUS: number;
   CRUSH_FOLD_OFFSET: number;
+  ANNO_TEXT_SIZE: number;
+  ANNO_CHANGE_SCALE_OFFSET: number;
+
+  gridGap: number,
+  gridGapIsPixels: boolean,
+  setGridGap: (g: number) => void
+  setGridGapIsPixels: (v: boolean) => void
+
+  gridBaseStrokePx: number,
+  gridStrokeCoeff: number,
+  gridStrokeMinPx: number,
+  gridStrokeMaxPx: number,
+  setGridStrokeCoeff: (c: number) => void
+
+  scale: number;
+  setScale: (scale: number) => void
 
   triggerRender: boolean;
   setTriggerRender: (t: boolean) => void;
@@ -19,18 +35,8 @@ export type StoreState = {
   modeMeta: string | number | null | undefined;
   setModeMeta: (t: string | number | null | undefined) => void;
 
-  data: {
-    nodes: Map<string, Node>;
-    crushFoldDir: boolean;
-    startCrushFold: boolean;
-    endCrushFold: boolean;
-  } | null;
-  setData: (data: {
-    nodes?: Map<string, Node>;
-    crushFoldDir?: boolean;
-    startCrushFold?: boolean;
-    endCrushFold?: boolean;
-  }) => void;
+  data: GraphData | null;
+  setData: (data: Partial<GraphData>) => void;
 
   activeMode: string;
   setMode: (mode: string) => void;
@@ -73,24 +79,65 @@ export const graphStore = createStore<StoreState>((set, get) => ({
   NODE_RADIUS: 10,
   NODE_OVERLAY_RADIUS: 25,
   CRUSH_FOLD_OFFSET: 10,
+  ANNO_TEXT_SIZE: 14,
+  ANNO_CHANGE_SCALE_OFFSET: 0.4,
+
   drawDirection: true,
   setDrawDirection: (dir) => set({ drawDirection: dir }),
+
+  gridGap: 50,             // interpreted as world units unless gridGapIsPixels true
+  gridGapIsPixels: false,  // if true, gridGap is screen pixels
+  setGridGap: (g: number) => set({ gridGap: g }),
+  setGridGapIsPixels: (v: boolean) => set({ gridGapIsPixels: v }),
+
+  gridBaseStrokePx: 1,
+  gridStrokeCoeff: 1.0,
+  gridStrokeMinPx: 0.5,
+  gridStrokeMaxPx: 1.5,
+  setGridStrokeCoeff: (c) => set({ gridStrokeCoeff: c }),
+
+  panX: 0,
+  panY: 0,
+  zoom: 1,
+  setTransform: (zoom, panX, panY) => set({ zoom, panX, panY }),
+
+  viewBox: null,
+  setViewBox: (v) => set({ viewBox: v }),
+
+  scale: 1,
+  setScale: (scale: number) => set({ scale: scale }),
 
   // Rendering and Engine
   triggerRender: false,
   setTriggerRender: (t) => {
     set({ triggerRender: t });
   },
-  panX: 0,
-  panY: 0,
-  zoom: 1,
-  setTransform: (zoom, panX, panY) => set({ zoom, panX, panY }),
-  viewBox: null,
-  setViewBox: (v) => set({ viewBox: v }),
 
   // Flashing data
   data: null,
-  setData: (data) => set({ data }),
+  // setData: (data) => set({ data }),
+  setData: (patch) =>
+    set((state) => {
+      if (state.data === null) {
+        // decide your policy here
+        // either reject, or initialize defaults
+        return {
+          data: {
+            nodes: patch.nodes ?? new Map(),
+            crushFoldDir: patch.crushFoldDir ?? false,
+            startCrushFold: patch.startCrushFold ?? false,
+            endCrushFold: patch.endCrushFold ?? false,
+          },
+        };
+      }
+
+      return {
+        data: {
+          ...state.data,
+          ...patch,
+        },
+      };
+    }),
 
   // Modes
   activeMode: "draw",

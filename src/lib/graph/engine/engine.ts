@@ -183,6 +183,8 @@ export class Engine {
     // track pointers (for pinch)
     this.pointers.set(e.pointerId, e);
 
+    console.log("pointer down...")
+
     // If two fingers -> start pinch (handled in move)
     if (this.pointers.size === 2) {
       const [a, b] = Array.from(this.pointers.values());
@@ -334,6 +336,8 @@ export class Engine {
 
     const newX = svgX - ((svgX - vb.x) * newW) / vb.width;
     const newY = svgY - ((svgY - vb.y) * newH) / vb.height;
+
+    graphStore.getState().setScale(rect.width / (vb?.width ?? 1))
 
     graphStore
       .getState()

@@ -41,6 +41,43 @@ import { IdleMode } from "@/lib/graph/engine/modes/idle";
 import { RemoveMode } from "@/lib/graph/engine/modes/remove";
 import { ResizeMode } from "@/lib/graph/engine/modes/resize";
 import { FoldMode } from "@/lib/graph/engine/modes/fold";
+import { Node } from "@/lib/graph/types/types";
+
+const demoData: Node[] = [
+  {
+    node_id: "gwomd9",
+    x: 100,
+    y: 350,
+    next_node_id: "9rnao4",
+  },
+  {
+    node_id: "9rnao4",
+    x: 50,
+    y: 500,
+    prev_node_id: "gwomd9",
+    next_node_id: "jeq3bi",
+  },
+  {
+    node_id: "jeq3bi",
+    x: 150,
+    y: 500,
+    prev_node_id: "9rnao4",
+    next_node_id: "6jagob",
+  },
+  {
+    node_id: "6jagob",
+    x: 200,
+    y: 400,
+    prev_node_id: "jeq3bi",
+    next_node_id: "b7lk16",
+  },
+  {
+    node_id: "b7lk16",
+    x: 150,
+    y: 350,
+    prev_node_id: "6jagob",
+  },
+];
 
 export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,6 +104,7 @@ export default function GraphPage() {
     // initialize some data
     graphStore.setState({
       data: {
+        // nodes: new Map<string, Node>(demoData.map((n: Node) => [n.node_id, n])),
         nodes: new Map(),
         startCrushFold: false,
         endCrushFold: false,
@@ -80,7 +118,7 @@ export default function GraphPage() {
   }, []);
 
   const switchMode = (
-    mode: "draw" | "move" | "remove" | "resize" | "fold" | "idle"
+    mode: "draw" | "move" | "remove" | "resize" | "fold" | "idle",
   ) => {
     if (!engine.current || !containerRef.current) return;
     if (mode === "idle") engine.current.setMode(new IdleMode());
