@@ -1,6 +1,6 @@
 // engine/store.ts
 import { createStore } from "zustand/vanilla";
-import type { GraphData, Node } from "../types/types";
+import type { GraphData } from "../types/types";
 import { hasEdgeCrossing } from "../engine/helpers/engine";
 
 export type StoreState = {
