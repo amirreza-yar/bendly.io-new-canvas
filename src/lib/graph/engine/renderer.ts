@@ -1,193 +1,122 @@
-import { G, SVG, type Svg, Pattern, Rect } from "@svgdotjs/svg.js";
-import { graphStore } from "../store/store"; // import your zustand store
-import type { GraphData, Mode } from "../types/types";
+import { G } from '@svgdotjs/svg.js';
+import { graphStore } from '../store/store'; // import your zustand store
+import type { GraphData, Mode } from '../types/types';
+import { BaseSvgRenderer } from './base/renderer';
 
-export class SvgRenderer {
-  draw: Svg;
+export class SvgRenderer extends BaseSvgRenderer {
   nodesLayer: G;
   edgesLayer: G;
   annotationLayer: G;
-  viewport: G;
-  gridLayer: G;                // new: dedicated layer for grid
-  private gridPattern?: Pattern; // svg.js Pattern object
-  private gridRect?: Rect;       // svg.js Rect
-  private currentGap = 0;       // gap used to build current pattern (world units)
-  private container: HTMLElement;
-
-  // inside SvgRenderer class (add these fields)
-  private gridVLine?: any;
-  private gridHLine?: any;
-
-  // default config (can be read from zustand instead)
-  private gridBaseStrokePx = 1;    // baseline pixel width
-  private gridStrokeCoeff = 1.0;   // multiplier you asked for
-  private gridStrokeMinPx = 0.5;   // smallest visible pixel width
-  private gridStrokeMaxPx = 3.0;   // largest pixel width
-
-  selectedNodeId: string | null = null;
-  selectedEdgeId: string | null = null;
+  extraLayer: G;
 
   constructor(el: HTMLElement) {
-    this.container = el;
-    this.draw = SVG().addTo(el).size("100%", "100%");
-    this.gridLayer = this.draw.group();        // grid lives here and will not be cleared by normal render
+    super(el);
+
+    this.extraLayer = this.draw.group();
     this.edgesLayer = this.draw.group();
     this.nodesLayer = this.draw.group();
     this.annotationLayer = this.draw.group();
-    this.viewport = this.draw.group();
 
-    // create an initial (empty) grid
-    this.ensureGridPattern(200); // start with some default gap
+    graphStore.getState().setEngineReady(true);
   }
 
-  // call to create (or recreate) the pattern. Only recreates when gap changes.
-  private ensureGridPattern(worldGap: number) {
-    if (worldGap <= 0) {
-      // disable grid if invalid gap
-      if (this.gridRect) {
-        this.gridRect.hide();
-      }
-      return;
+  private getCombinedBBox() {
+    const layers = [this.edgesLayer, this.nodesLayer, this.annotationLayer, this.extraLayer];
+
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+
+    let hasContent = false;
+
+    for (const layer of layers) {
+      if (!layer || layer.children().length === 0) continue;
+
+      const box = layer.bbox(); // WORLD coordinates
+      if (!isFinite(box.x) || !isFinite(box.y)) continue;
+
+      hasContent = true;
+      minX = Math.min(minX, box.x);
+      minY = Math.min(minY, box.y);
+      maxX = Math.max(maxX, box.x + box.width);
+      maxY = Math.max(maxY, box.y + box.height);
     }
 
-    if (this.currentGap === worldGap && this.gridPattern && this.gridRect) {
-      // nothing to do
-      this.gridRect.show();
-      return;
-    }
+    if (!hasContent) return null;
 
-    // remove old pattern & rect cleanly
-    if (this.gridPattern) {
-      try {
-        this.gridPattern.remove();
-      } catch { }
-    }
-    if (this.gridRect) {
-      try {
-        this.gridRect.remove();
-      } catch { }
-    }
-
-    // create new pattern in userSpace (patternUnits = userSpaceOnUse)
-    const gap = Math.max(1, worldGap); // clamp
-    this.currentGap = gap;
-
-    // ... inside ensureGridPattern (where you create the pattern) replace the add lines with references:
-    const pattern = this.draw.pattern(gap, gap, (add: any) => {
-      // vertical line at x = 0
-      this.gridVLine = add.line(0, 0, 0, gap)
-        .stroke({ width: 1 /* placeholder; we'll update later */, color: "#d0d0d0", linecap: "butt" })
-      // .attr({ "pointer-events": "none" });
-
-      // horizontal line at y = 0
-      this.gridHLine = add.line(0, 0, gap, 0)
-        .stroke({ width: 1 /* placeholder */, color: "#d0d0d0", linecap: "butt" })
-      // .attr({ "pointer-events": "none" });
-    });
-
-    // ensure world coordinates used
-    pattern.attr({ patternUnits: "userSpaceOnUse" });
-
-    // rect that covers the visible viewBox (we'll size & move it per-viewBox)
-    const rect = this.draw
-      .rect(1, 1)
-      .fill(pattern)
-      .move(0, 0)
-      .back(); // keep grid behind nodes/edges
-    // Move rect into the dedicated gridLayer so it won't be cleared by annotation clears:
-    this.gridLayer.add(rect);
-    this.gridLayer.back()
-
-    this.gridPattern = pattern;
-    this.gridRect = rect;
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
   }
 
-  // Align the pattern origin to the grid so panning gives integer steps
-  private alignedOrigin(value: number, gap: number) {
-    return Math.floor(value / gap) * gap;
-  }
+  public centerRenderedContentAnimated(
+    paddingTopPx = 40,
+    paddingBottomPx = 160,
+    paddingSideFrac = 0.01,
+    durationMs = 300,
+  ) {
+    const bbox = this.getCombinedBBox();
+    if (!bbox) return;
 
-  // Call every render (cheap). supply viewBox to avoid re-querying global store.
-  private updateGridStrokeForViewBox(vb: { x: number; y: number; width: number; height: number }) {
-    if (!this.gridPattern || !this.gridVLine || !this.gridHLine) return;
-
-    // read config from store if you keep these in zustand (optional)
-    const state = graphStore.getState();
-    const coeff = state.gridStrokeCoeff ?? this.gridStrokeCoeff;
-    const basePx = state.gridBaseStrokePx ?? this.gridBaseStrokePx;
-    const minPx = state.gridStrokeMinPx ?? this.gridStrokeMinPx;
-    const maxPx = state.gridStrokeMaxPx ?? this.gridStrokeMaxPx;
-
-    // screen pixels per world unit
     const rect = this.container.getBoundingClientRect();
-    if (rect.width === 0) return;
-    const scale = rect.width / vb.width; // px per world unit
+    if (rect.width === 0 || rect.height === 0) return;
 
-    // optionally account for devicePixelRatio if you want "device pixels" steadiness
-    const DPR = window.devicePixelRatio || 1;
+    const currentVB = this.draw.viewbox();
 
-    // desired visual width in CSS pixels (you can change to DPR pixels by multiplying)
-    let desiredPx = basePx * coeff;
-    desiredPx = Math.max(minPx, Math.min(maxPx, desiredPx));
+    // current scale: world → pixels
+    const scale = rect.width / currentVB.width;
 
-    // If you want to account for DPR (so on HiDPI the line still looks same physical thickness),
-    // multiply desiredPx by DPR here. Uncomment if needed:
-    // desiredPx *= DPR;
+    // convert pixel padding → world units
+    const padTopWorld = paddingTopPx / scale;
+    const padBottomWorld = paddingBottomPx / scale;
+    const padXWorld = bbox.width * paddingSideFrac;
 
-    // convert to world units so when viewBox transforms, stroke maps to desiredPx on screen
-    const worldStroke = desiredPx / scale;
+    const paddedWidth = bbox.width + padXWorld * 2;
+    const paddedHeight = bbox.height + padTopWorld + padBottomWorld;
 
-    // apply to pattern lines (stroke width is in world units)
-    try {
-      this.gridVLine.stroke({ width: worldStroke });
-      this.gridHLine.stroke({ width: worldStroke });
-    } catch (err) {
-      // defensive: if pattern elements are recreated, ignore until next update
-    }
-  }
+    const fitScale = Math.min(rect.width / paddedWidth, rect.height / paddedHeight);
 
-  // Call every render (cheap). supply viewBox to avoid re-querying global store.
-  updateGridForViewBox(vb: { x: number; y: number; width: number; height: number }) {
-    // read gap config from zustand. Example keys: gridGap and gridGapIsPixels.
-    const state = graphStore.getState();
-    const configuredGap = state.gridGap ?? 50; // fallback
-    const gapIsPixels = !!state.gridGapIsPixels;
+    const targetWidth = rect.width / fitScale;
+    const targetHeight = rect.height / fitScale;
 
-    // compute worldGap from configuredGap depending on mode
-    let worldGap = configuredGap;
-    if (gapIsPixels) {
-      // convert screen px -> world units
-      const rect = this.container.getBoundingClientRect();
-      if (rect.width === 0) return; // defensive
-      const pxToWorldX = vb.width / rect.width;
-      // note: treat gap as square so use width scale
-      worldGap = Math.max(1, configuredGap * pxToWorldX);
-    }
+    const contentCenterX = bbox.x + bbox.width / 2;
 
-    // create or update pattern (recreate only when worldGap changed noticeably)
-    if (!this.gridPattern || Math.abs(this.currentGap - worldGap) > 1e-6) {
-      this.ensureGridPattern(worldGap);
-    }
+    const contentTop = bbox.y - padTopWorld;
+    const contentBottom = bbox.y + bbox.height + padBottomWorld;
+    const contentCenterY = (contentTop + contentBottom) / 2;
 
-    if (!this.gridPattern || !this.gridRect) return;
+    const target = {
+      x: contentCenterX - targetWidth / 2,
+      y: contentCenterY - targetHeight / 2,
+      width: targetWidth,
+      height: targetHeight,
+    };
 
-    // Align pattern origin to avoid visual jitter while panning
-    const ox = this.alignedOrigin(vb.x, this.currentGap);
-    const oy = this.alignedOrigin(vb.y, this.currentGap);
+    const start = { ...currentVB };
+    const startTime = performance.now();
 
-    // pattern.x / pattern.y anchor the tiling. pattern.attr works with svg.js Pattern
-    this.gridPattern.attr({ x: ox, y: oy });
+    const easeInOutCubic = (t: number) =>
+      t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-    // update the rect to cover the exact viewBox (only change attributes — cheap)
-    this.gridRect.move(vb.x, vb.y).size(vb.width, vb.height);
+    const animate = (now: number) => {
+      const t = Math.min(1, (now - startTime) / durationMs);
+      const k = easeInOutCubic(t);
 
-    this.updateGridStrokeForViewBox(vb);
-  }
+      graphStore.getState().setViewBox({
+        x: start.x + (target.x - start.x) * k,
+        y: start.y + (target.y - start.y) * k,
+        width: start.width + (target.width - start.width) * k,
+        height: start.height + (target.height - start.height) * k,
+      });
 
-  setViewBox(x: number, y: number, width: number, height: number) {
-    this.draw.viewbox(x, y, width, height);
-    // Also update grid immediately (cheap)
-    this.updateGridForViewBox({ x, y, width, height });
+      if (t < 1) requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
   }
 
   render(data: GraphData, activeMode: Mode) {
@@ -195,31 +124,30 @@ export class SvgRenderer {
     this.edgesLayer.clear();
     this.nodesLayer.clear();
     this.annotationLayer.clear();
+    this.extraLayer.clear();
 
     // update grid using live viewBox from store (or optionally pass it in)
     const vb = graphStore.getState().viewBox;
     if (vb) this.updateGridForViewBox(vb);
 
-    // console.log("in renderer: ", rect.width, vb?.width, scale)
+    activeMode?.initMode?.(data.nodes, this.extraLayer.group());
 
-    // if (activeMode.annotaionObjects) 
-    
     data.nodes?.forEach((node) => {
       if (!node.next_node_id) return;
       const g = this.edgesLayer.group();
       const to = data.nodes.get(node.next_node_id);
       if (!to) return;
-      
+
       activeMode.edgeObject(g, node, to);
     });
-    
+
     data.nodes?.forEach((node) => {
       const g = this.nodesLayer.group();
       g.translate(node.x, node.y);
-      
+
       activeMode.nodeObject(g, node);
     });
 
-    activeMode?.annotaionObjects?.(data.nodes, this.annotationLayer.group())
+    activeMode?.annotaionObjects?.(data.nodes, this.annotationLayer.group());
   }
 }

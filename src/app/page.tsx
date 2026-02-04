@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 // const initialData: GraphData = {
 //   nodes: [
@@ -31,51 +31,68 @@
 //   crushFoldDir: false,
 // };
 
-import { useEffect, useRef } from "react";
-import { Engine } from "@/lib/graph/engine/engine";
-import { DrawMode } from "@/lib/graph/engine/modes/draw";
-import { MoveMode } from "@/lib/graph/engine/modes/move";
-import { graphStore } from "@/lib/graph/store/store";
-import { useGraphStore } from "@/lib/graph/store/useStore";
-import { IdleMode } from "@/lib/graph/engine/modes/idle";
-import { RemoveMode } from "@/lib/graph/engine/modes/remove";
-import { ResizeMode } from "@/lib/graph/engine/modes/resize";
-import { FoldMode } from "@/lib/graph/engine/modes/fold";
-import { Node } from "@/lib/graph/types/types";
+import { ReactNode, useCallback, useEffect, useRef } from 'react';
+import { Engine } from '@/lib/graph/engine/engine';
+import { DrawMode } from '@/lib/graph/engine/modes/draw';
+import { MoveMode } from '@/lib/graph/engine/modes/move';
+import { graphStore } from '@/lib/graph/store/store';
+import { useGraphStore } from '@/lib/graph/store/useStore';
+import { IdleMode } from '@/lib/graph/engine/modes/idle';
+import { RemoveMode } from '@/lib/graph/engine/modes/remove';
+import { ResizeMode } from '@/lib/graph/engine/modes/resize';
+import { FoldMode } from '@/lib/graph/engine/modes/fold';
+import { Node } from '@/lib/graph/types/types';
+import { TaperMode } from '@/lib/graph/engine/modes/taper';
+import CanvasHeader from '@/lib/graph/components/header';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Redo2,
+  RulerDimensionLine,
+  Settings,
+  Undo2,
+  X,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group';
+import { Crosshair, CrushFold, Drawing, Modify, Resize, Taper } from '@/components/icons';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const demoData: Node[] = [
   {
-    node_id: "gwomd9",
+    node_id: 'gwomd9',
     x: 100,
     y: 350,
-    next_node_id: "9rnao4",
+    next_node_id: '9rnao4',
   },
   {
-    node_id: "9rnao4",
+    node_id: '9rnao4',
     x: 50,
     y: 500,
-    prev_node_id: "gwomd9",
-    next_node_id: "jeq3bi",
+    prev_node_id: 'gwomd9',
+    next_node_id: 'jeq3bi',
+    next_line_bside_length: 300,
   },
   {
-    node_id: "jeq3bi",
+    node_id: 'jeq3bi',
     x: 150,
     y: 500,
-    prev_node_id: "9rnao4",
-    next_node_id: "6jagob",
+    prev_node_id: '9rnao4',
+    next_node_id: '6jagob',
   },
   {
-    node_id: "6jagob",
+    node_id: '6jagob',
     x: 200,
     y: 400,
-    prev_node_id: "jeq3bi",
-    next_node_id: "b7lk16",
+    prev_node_id: 'jeq3bi',
+    next_node_id: 'b7lk16',
   },
   {
-    node_id: "b7lk16",
+    node_id: 'b7lk16',
     x: 150,
     y: 350,
-    prev_node_id: "6jagob",
+    prev_node_id: '6jagob',
   },
 ];
 
@@ -83,6 +100,7 @@ export default function GraphPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const engine = useRef<Engine>(null);
 
+  const engineReady = useGraphStore((s) => s.engineReady);
   const activeMode = useGraphStore((s) => s.activeMode);
   const canUndo = useGraphStore((s) => s.history.length > 0);
   const canRedo = useGraphStore((s) => s.future.length > 0);
@@ -97,6 +115,7 @@ export default function GraphPage() {
 
     const eng = new Engine(containerRef.current);
     const drawMode = new DrawMode();
+
     eng.setMode(drawMode);
 
     engine.current = eng;
@@ -117,201 +136,127 @@ export default function GraphPage() {
     };
   }, []);
 
-  const switchMode = (
-    mode: "draw" | "move" | "remove" | "resize" | "fold" | "idle",
-  ) => {
-    if (!engine.current || !containerRef.current) return;
-    if (mode === "idle") engine.current.setMode(new IdleMode());
-    if (mode === "draw") engine.current.setMode(new DrawMode());
-    if (mode === "move") engine.current.setMode(new MoveMode());
-    if (mode === "remove") engine.current.setMode(new RemoveMode());
-    if (mode === "resize") engine.current.setMode(new ResizeMode());
-    if (mode === "fold") engine.current.setMode(new FoldMode());
+  const centerizeDrawing = () => {
+    if (!engine.current) return;
+
+    engine.current.renderer.centerRenderedContentAnimated();
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <div
-        style={{ position: "absolute", top: 10, left: 10, zIndex: 50 }}
-        className="absolute top-3 left-3 p-2 space-x-1"
-      >
-        <button
-          className={`text-black ${
-            activeMode === "draw" ? "bg-blue-500" : "bg-gray-200"
-          } p-2`}
-          onClick={() => {
-            if (graphStore.getState().activeMode === "draw") {
-              switchMode("idle");
-            } else {
-              switchMode("draw");
-            }
-          }}
-        >
-          Draw
-        </button>
-        <button
-          className={`text-black ${
-            activeMode === "move" ? "bg-blue-500" : "bg-gray-200"
-          } p-2`}
-          onClick={() => {
-            if (graphStore.getState().activeMode === "move") {
-              switchMode("idle");
-            } else {
-              switchMode("move");
-            }
-          }}
-        >
-          Move
-        </button>
-
-        <button
-          className={`text-black ${
-            activeMode === "remove" ? "bg-blue-500" : "bg-gray-200"
-          } p-2`}
-          onClick={() => {
-            if (graphStore.getState().activeMode === "remove") {
-              switchMode("idle");
-            } else {
-              switchMode("remove");
-            }
-          }}
-        >
-          Remove
-        </button>
-
-        <button
-          className={`text-black ${
-            activeMode === "resize" ? "bg-blue-500" : "bg-gray-200"
-          } p-2`}
-          onClick={() => {
-            if (graphStore.getState().activeMode === "resize") {
-              switchMode("idle");
-            } else {
-              switchMode("resize");
-            }
-          }}
-        >
-          Resize
-        </button>
-        <button
-          className={`text-black ${
-            activeMode === "fold" ? "bg-blue-500" : "bg-gray-200"
-          } p-2`}
-          onClick={() => {
-            if (graphStore.getState().activeMode === "fold") {
-              switchMode("idle");
-            } else {
-              switchMode("fold");
-            }
-          }}
-        >
-          Fold
-        </button>
-      </div>
-
-      <div className="absolute top-3 right-4 p-2 space-x-1">
-        <button
-          className="bg-black p-2 disabled:bg-gray-400"
-          disabled={!canUndo}
-          onClick={() => graphStore.getState().undo()}
-        >
-          Undo
-        </button>
-
-        <button
-          className="bg-black p-2 disabled:bg-gray-400"
-          disabled={!canRedo}
-          onClick={() => graphStore.getState().redo()}
-        >
-          Redo
-        </button>
-      </div>
-
-      {activeMode === "remove" && (
-        <div className="absolute bottom-3 right-3 p-2 space-x-1">
-          <button
-            className="bg-red-500 p-2 disabled:bg-red-200"
-            disabled={!canDoModeAction}
-            onClick={() => {
-              // @ts-expect-error active mode will have onAction for remove
-              engine.current?.activeMode?.onAction();
-            }}
-          >
-            Remove Selected Lines
-          </button>
+    <div style={{ width: '100vw', height: '100vh' }}>
+      {!engineReady ? (
+        <div className="fixed text-2xl w-screen h-screen flex items-center justify-center">
+          Rendering...
         </div>
-      )}
+      ) : (
+        <>
+          <CanvasHeader engine={engine} />
 
-      {activeMode === "resize" && (
-        <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
-          <input
-            defaultValue={modeMeta ?? 0}
-            id="resize-input"
-            type="number"
-            placeholder="Type desired value"
-            className=" bg-white text-black"
-          />
-          <button
-            className="bg-red-500 p-2 disabled:bg-red-200"
-            disabled={!canDoModeAction}
-            onClick={() => {
-              const resizeInput = document.getElementById("resize-input");
-              // @ts-expect-error active mode will have onAction for resize
-              engine.current?.activeMode?.onAction(resizeInput?.value);
-            }}
-          >
-            Resize
-          </button>
-        </div>
-      )}
+          {/* <div className="absolute top-3 right-4 p-2 space-x-1">
+            <button
+              className="bg-gray-700 text-white p-2 disabled:bg-gray-400"
+              disabled={!canUndo}
+              onClick={() => graphStore.getState().undo()}
+            >
+              Undo
+            </button>
 
-      {activeMode === "fold" && (
-        <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
-          <button
-            className={`p-2 text-black ${
-              startCrushFold ? "bg-blue-600" : "bg-gray-200"
-            }`}
-            onClick={() => {
-              // @ts-expect-error active mode will have onAction for resize
-              engine.current?.activeMode?.onAction({
-                startCrushFold: !startCrushFold,
-              });
-            }}
-          >
-            Start Fold
-          </button>
-          <button
-            className={`p-2 text-black ${
-              endCrushFold ? "bg-blue-600" : "bg-gray-200"
-            }`}
-            onClick={() => {
-              // @ts-expect-error active mode will have onAction for resize
-              engine.current?.activeMode?.onAction({
-                endCrushFold: !endCrushFold,
-              });
-            }}
-          >
-            End Fold
-          </button>
-          <button
-            className={`p-2 text-black ${
-              crushFoldDir ? "bg-blue-600" : "bg-gray-200"
-            }`}
-            onClick={() => {
-              // @ts-expect-error active mode will have onAction for resize
-              engine.current?.activeMode?.onAction({
-                crushFoldDir: !crushFoldDir,
-              });
-            }}
-          >
-            Fold Dir : {String(crushFoldDir)}
-          </button>
-        </div>
+            <button
+              className="bg-gray-700 text-white p-2 disabled:bg-gray-400"
+              disabled={!canRedo}
+              onClick={() => graphStore.getState().redo()}
+            >
+              Redo
+            </button>
+          </div>
+
+          <div className="absolute bottom-3 left-4 p-2 space-x-1">
+            <button className="bg-primary text-white p-2" onClick={() => centerizeDrawing()}>
+              Centerize
+            </button>
+          </div>
+
+          {activeMode === 'remove' && (
+            <div className="absolute bottom-3 right-3 p-2 space-x-1">
+              <button
+                className="bg-red-500 p-2 disabled:bg-red-200"
+                disabled={!canDoModeAction}
+                onClick={() => {
+                  // @ts-expect-error active mode will have onAction for remove
+                  engine.current?.activeMode?.onAction();
+                }}
+              >
+                Remove Selected Lines
+              </button>
+            </div>
+          )}
+
+          {activeMode === 'resize' && (
+            <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
+              <input
+                defaultValue={modeMeta ?? 0}
+                id="resize-input"
+                type="number"
+                placeholder="Type desired value"
+                className=" bg-white text-black"
+              />
+              <button
+                className="bg-red-500 p-2 disabled:bg-red-200"
+                disabled={!canDoModeAction}
+                onClick={() => {
+                  const resizeInput = document.getElementById('resize-input');
+                  // @ts-expect-error active mode will have onAction for resize
+                  engine.current?.activeMode?.onAction(resizeInput?.value);
+                }}
+              >
+                Resize
+              </button>
+            </div>
+          )}
+
+          {activeMode === 'fold' && (
+            <div className="absolute bottom-3 right-3 p-2 space-x-1 bg-gray-300 space-x-4">
+              <button
+                className={`p-2 text-black ${startCrushFold ? 'bg-blue-600' : 'bg-gray-200'}`}
+                onClick={() => {
+                  // @ts-expect-error active mode will have onAction for resize
+                  engine.current?.activeMode?.onAction({
+                    startCrushFold: !startCrushFold,
+                  });
+                }}
+              >
+                Start Fold
+              </button>
+              <button
+                className={`p-2 text-black ${endCrushFold ? 'bg-blue-600' : 'bg-gray-200'}`}
+                onClick={() => {
+                  // @ts-expect-error active mode will have onAction for resize
+                  engine.current?.activeMode?.onAction({
+                    endCrushFold: !endCrushFold,
+                  });
+                }}
+              >
+                End Fold
+              </button>
+              <button
+                className={`p-2 text-black ${crushFoldDir ? 'bg-blue-600' : 'bg-gray-200'}`}
+                onClick={() => {
+                  // @ts-expect-error active mode will have onAction for resize
+                  engine.current?.activeMode?.onAction({
+                    crushFoldDir: !crushFoldDir,
+                  });
+                }}
+              >
+                Fold Dir : {String(crushFoldDir)}
+              </button>
+            </div>
+          )} */}
+        </>
       )}
 
       <div
         ref={containerRef}
-        style={{ width: "100%", height: "100%", background: "#fafafa" }}
+        style={{ width: '100%', height: '100%', zIndex: 'auto', background: '#fafafa' }}
       />
     </div>
   );

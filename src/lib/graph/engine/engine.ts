@@ -1,6 +1,13 @@
-import { SvgRenderer } from "./renderer";
-import { graphStore, StoreState } from "../store/store";
-import { Mode } from "../types/types";
+import { SvgRenderer } from './renderer';
+import { graphStore, StoreState } from '../store/store';
+import { Mode } from '../types/types';
+import { IdleMode } from './modes/idle';
+import { DrawMode } from './modes/draw';
+import { MoveMode } from './modes/move';
+import { RemoveMode } from './modes/remove';
+import { ResizeMode } from './modes/resize';
+import { FoldMode } from './modes/fold';
+import { TaperMode } from './modes/taper';
 
 export class Engine {
   container: HTMLElement;
@@ -34,8 +41,7 @@ export class Engine {
   constructor(container: HTMLElement) {
     this.container = container;
     // ensure the container doesn't let the browser steal gestures
-    this.container.style.touchAction =
-      this.container.style.touchAction || "none";
+    this.container.style.touchAction = this.container.style.touchAction || 'none';
 
     this.renderer = new SvgRenderer(container);
 
@@ -58,12 +64,13 @@ export class Engine {
 
     // subscribe to store: render + apply viewBox from store
     this.unsubStore = graphStore.subscribe((state) => {
-      if (state.data && state.viewBox)
+      if (state.data && state.viewBox) {
         this.renderer.render(state.data, this.activeMode!);
+      }
 
-      if (state.data && state.triggerRender){
+      if (state.data && state.triggerRender) {
         this.renderer.render(state.data, this.activeMode!);
-        state.setTriggerRender(false)
+        state.setTriggerRender(false);
       }
 
       const vb = (state as StoreState).viewBox;
@@ -73,19 +80,19 @@ export class Engine {
     });
 
     // global pointer listeners on container
-    container.addEventListener("pointerdown", this.boundPointerDown);
-    container.addEventListener("pointermove", this.boundPointerMove);
-    container.addEventListener("pointerup", this.boundPointerUp);
-    container.addEventListener("pointercancel", this.boundPointerUp);
+    container.addEventListener('pointerdown', this.boundPointerDown);
+    container.addEventListener('pointermove', this.boundPointerMove);
+    container.addEventListener('pointerup', this.boundPointerUp);
+    container.addEventListener('pointercancel', this.boundPointerUp);
 
     // wheel for zoom
-    container.addEventListener("wheel", this.boundWheel, {
+    container.addEventListener('wheel', this.boundWheel, {
       passive: false,
     } as AddEventListenerOptions);
 
     // keyboard (space-to-pan)
-    window.addEventListener("keydown", this.boundKeyDown);
-    window.addEventListener("keyup", this.boundKeyUp);
+    window.addEventListener('keydown', this.boundKeyDown);
+    window.addEventListener('keyup', this.boundKeyUp);
   }
 
   // inside your Engine class — replace existing handleResize()
@@ -97,10 +104,7 @@ export class Engine {
     }
 
     // no-op if same size
-    if (
-      rect.width === this.lastRect.width &&
-      rect.height === this.lastRect.height
-    ) {
+    if (rect.width === this.lastRect.width && rect.height === this.lastRect.height) {
       return;
     }
 
@@ -132,15 +136,47 @@ export class Engine {
     }
 
     // commit new viewBox to the store
-    graphStore
-      .getState()
-      .setViewBox({ x: newX, y: newY, width: newWidth, height: newHeight });
+    graphStore.getState().setViewBox({ x: newX, y: newY, width: newWidth, height: newHeight });
 
     // update stored rect for next resize
     this.lastRect = rect;
   }
 
-  setMode(mode: Mode) {
+  setMode(mode: Mode | string) {
+    if (typeof mode === 'string') {
+      let modeInstance: Mode;
+
+      switch (mode) {
+        case 'idle':
+          modeInstance = new IdleMode();
+          break;
+        case 'draw':
+          modeInstance = new DrawMode();
+          break;
+        case 'move':
+          modeInstance = new MoveMode();
+          break;
+        case 'remove':
+          modeInstance = new RemoveMode();
+          break;
+        case 'resize':
+          modeInstance = new ResizeMode();
+          break;
+        case 'fold':
+          modeInstance = new FoldMode();
+          break;
+        case 'taper':
+          modeInstance = new TaperMode();
+          break;
+        default:
+          throw new Error(`Unknown mode: ${mode}`);
+      }
+
+      this.activeMode = modeInstance;
+      graphStore.getState().setMode(modeInstance.name);
+      return;
+    }
+
     this.activeMode = mode;
     graphStore.getState().setMode(mode.name);
   }
@@ -180,10 +216,9 @@ export class Engine {
   // event handlers
   // -------------------------
   private handlePointerDownEvent(e: PointerEvent) {
+    console.log('pointer down');
     // track pointers (for pinch)
     this.pointers.set(e.pointerId, e);
-
-    console.log("pointer down...")
 
     // If two fingers -> start pinch (handled in move)
     if (this.pointers.size === 2) {
@@ -223,7 +258,7 @@ export class Engine {
     if (!this.activeMode?.isPanAllowed) return;
 
     // start pan if middle mouse OR Space key held
-    if (e.pointerType === "touch" || e.button === 1) {
+    if (e.pointerType === 'touch' || e.button === 1) {
       const vb = this.getViewBox();
       this.isPanning = true;
       this.panStart = {
@@ -265,9 +300,7 @@ export class Engine {
       const newX = svgX - ((svgX - vb0.x) * newWidth) / vb0.width;
       const newY = svgY - ((svgY - vb0.y) * newHeight) / vb0.height;
 
-      graphStore
-        .getState()
-        .setViewBox({ x: newX, y: newY, width: newWidth, height: newHeight });
+      graphStore.getState().setViewBox({ x: newX, y: newY, width: newWidth, height: newHeight });
       return;
     }
 
@@ -276,15 +309,11 @@ export class Engine {
       const rect = this.container.getBoundingClientRect();
       const vb = this.getViewBox();
       // dx in screen px -> convert to svg units
-      const dxSvg =
-        ((this.panStart.clientX - e.clientX) / rect.width) * vb.width;
-      const dySvg =
-        ((this.panStart.clientY - e.clientY) / rect.height) * vb.height;
+      const dxSvg = ((this.panStart.clientX - e.clientX) / rect.width) * vb.width;
+      const dySvg = ((this.panStart.clientY - e.clientY) / rect.height) * vb.height;
       const newX = this.panStart.vbX + dxSvg;
       const newY = this.panStart.vbY + dySvg;
-      graphStore
-        .getState()
-        .setViewBox({ x: newX, y: newY, width: vb.width, height: vb.height });
+      graphStore.getState().setViewBox({ x: newX, y: newY, width: vb.width, height: vb.height });
       return;
     }
 
@@ -337,18 +366,16 @@ export class Engine {
     const newX = svgX - ((svgX - vb.x) * newW) / vb.width;
     const newY = svgY - ((svgY - vb.y) * newH) / vb.height;
 
-    graphStore.getState().setScale(rect.width / (vb?.width ?? 1))
+    graphStore.getState().setScale(rect.width / (vb?.width ?? 1));
 
-    graphStore
-      .getState()
-      .setViewBox({ x: newX, y: newY, width: newW, height: newH });
+    graphStore.getState().setViewBox({ x: newX, y: newY, width: newW, height: newH });
   }
 
   private handleKeyDown(e: KeyboardEvent) {
-    if (e.code === "Space") this.spaceDown = true;
+    if (e.code === 'Space') this.spaceDown = true;
   }
   private handleKeyUp(e: KeyboardEvent) {
-    if (e.code === "Space") this.spaceDown = false;
+    if (e.code === 'Space') this.spaceDown = false;
   }
 
   // -------------------------
@@ -356,16 +383,13 @@ export class Engine {
   // -------------------------
   destroy() {
     this.unsubStore();
-    this.container.removeEventListener("pointerdown", this.boundPointerDown);
-    this.container.removeEventListener("pointermove", this.boundPointerMove);
-    this.container.removeEventListener("pointerup", this.boundPointerUp);
-    this.container.removeEventListener("pointercancel", this.boundPointerUp);
-    this.container.removeEventListener(
-      "wheel",
-      this.boundWheel as EventListener
-    );
-    window.removeEventListener("keydown", this.boundKeyDown);
-    window.removeEventListener("keyup", this.boundKeyUp);
+    this.container.removeEventListener('pointerdown', this.boundPointerDown);
+    this.container.removeEventListener('pointermove', this.boundPointerMove);
+    this.container.removeEventListener('pointerup', this.boundPointerUp);
+    this.container.removeEventListener('pointercancel', this.boundPointerUp);
+    this.container.removeEventListener('wheel', this.boundWheel as EventListener);
+    window.removeEventListener('keydown', this.boundKeyDown);
+    window.removeEventListener('keyup', this.boundKeyUp);
 
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();

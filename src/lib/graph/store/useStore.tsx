@@ -1,6 +1,6 @@
-'use client'
-import { useSyncExternalStore } from "react";
-import { graphStore, StoreState } from "./store";
+'use client';
+import { useSyncExternalStore } from 'react';
+import { graphStore, StoreState } from './store';
 
 export function useGraphStore<T>(selector: (state: StoreState) => T) {
   return useSyncExternalStore(
@@ -9,6 +9,6 @@ export function useGraphStore<T>(selector: (state: StoreState) => T) {
     // get snapshot
     () => selector(graphStore.getState()),
     // server snapshot: not needed for client-only
-    () => selector(graphStore.getState())
+    () => selector(graphStore.getState()),
   );
 }

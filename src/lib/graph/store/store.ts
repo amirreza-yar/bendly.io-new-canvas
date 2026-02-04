@@ -1,9 +1,12 @@
 // engine/store.ts
-import { createStore } from "zustand/vanilla";
-import type { GraphData } from "../types/types";
-import { hasEdgeCrossing } from "../engine/helpers/engine";
+import { createStore } from 'zustand/vanilla';
+import type { GraphData } from '../types/types';
+import { hasEdgeCrossing } from '../engine/helpers/engine';
 
 export type StoreState = {
+  engineReady: boolean;
+  setEngineReady: (e: boolean) => void;
+
   LINE_HIT_WIDTH: number;
   LINE_STROKE_WIDTH: number;
   NODE_HIT_WIDTH: number;
@@ -13,19 +16,19 @@ export type StoreState = {
   ANNO_TEXT_SIZE: number;
   ANNO_CHANGE_SCALE_OFFSET: number;
 
-  gridGap: number,
-  gridGapIsPixels: boolean,
-  setGridGap: (g: number) => void
-  setGridGapIsPixels: (v: boolean) => void
+  gridGap: number;
+  gridGapIsPixels: boolean;
+  setGridGap: (g: number) => void;
+  setGridGapIsPixels: (v: boolean) => void;
 
-  gridBaseStrokePx: number,
-  gridStrokeCoeff: number,
-  gridStrokeMinPx: number,
-  gridStrokeMaxPx: number,
-  setGridStrokeCoeff: (c: number) => void
+  gridBaseStrokePx: number;
+  gridStrokeCoeff: number;
+  gridStrokeMinPx: number;
+  gridStrokeMaxPx: number;
+  setGridStrokeCoeff: (c: number) => void;
 
   scale: number;
-  setScale: (scale: number) => void
+  setScale: (scale: number) => void;
 
   triggerRender: boolean;
   setTriggerRender: (t: boolean) => void;
@@ -50,12 +53,7 @@ export type StoreState = {
   setTransform: (zoom: number, panX: number, panY: number) => void;
 
   viewBox: { x: number; y: number; width: number; height: number } | null;
-  setViewBox: (v: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  }) => void;
+  setViewBox: (v: { x: number; y: number; width: number; height: number }) => void;
 
   history: GraphData[];
   future: GraphData[];
@@ -72,6 +70,9 @@ let undoLock = false;
 let redoLock = false;
 
 export const graphStore = createStore<StoreState>((set, get) => ({
+  engineReady: false,
+  setEngineReady: (t) => set({ engineReady: t }),
+
   // Base configs
   LINE_HIT_WIDTH: 30,
   LINE_STROKE_WIDTH: 3,
@@ -85,8 +86,8 @@ export const graphStore = createStore<StoreState>((set, get) => ({
   drawDirection: true,
   setDrawDirection: (dir) => set({ drawDirection: dir }),
 
-  gridGap: 50,             // interpreted as world units unless gridGapIsPixels true
-  gridGapIsPixels: false,  // if true, gridGap is screen pixels
+  gridGap: 50, // interpreted as world units unless gridGapIsPixels true
+  gridGapIsPixels: false, // if true, gridGap is screen pixels
   setGridGap: (g: number) => set({ gridGap: g }),
   setGridGapIsPixels: (v: boolean) => set({ gridGapIsPixels: v }),
 
@@ -140,7 +141,7 @@ export const graphStore = createStore<StoreState>((set, get) => ({
     }),
 
   // Modes
-  activeMode: "draw",
+  activeMode: 'draw',
   setMode: (mode) => set({ activeMode: mode }),
   canDoModeAction: false,
   setCanDoModeAction: (t) => set({ canDoModeAction: t }),
@@ -167,7 +168,7 @@ export const graphStore = createStore<StoreState>((set, get) => ({
     }
 
     if (hasEdgeCrossing(data)) {
-      console.warn("Polygon unallowed");
+      console.warn('Polygon unallowed');
       set({ data: pendingHistory, pendingHistory: null });
       // alert("Polygon unallowed");
       return;

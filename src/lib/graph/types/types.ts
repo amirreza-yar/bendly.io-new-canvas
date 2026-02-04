@@ -1,5 +1,6 @@
-import { G } from "@svgdotjs/svg.js";
-import { SvgRenderer } from "../engine/renderer";
+import { Circle, G, Path, PathCommand, StrokeData } from '@svgdotjs/svg.js';
+import { SvgRenderer } from '../engine/renderer';
+import { ReactNode } from 'react';
 
 export type Point = { x: number; y: number };
 
@@ -9,6 +10,7 @@ export type Node = {
   y: number;
   next_node_id?: string;
   prev_node_id?: string;
+  next_line_bside_length?: number;
 };
 
 export type GraphData = {
@@ -21,24 +23,33 @@ export type GraphData = {
 export interface Mode {
   name: string;
   isPanAllowed: boolean;
+  title?: string;
 
+  // eslint-disable-next-line
+  ComponentUI?(props: any): ReactNode;
+  // eslint-disable-next-line
+  onUIReady?(props: any): void;
+  extraComponent?(): ReactNode;
+
+  initMode?(nodes: Map<string, Node>, g: G): void;
   nodeObject(g: G, node?: Node, render?: () => void): void;
   edgeObject(g: G, node: Node, to: Node, render?: () => void): void;
   annotaionObjects?(nodes: Map<string, Node>, g: G): void;
+
+  createNode(g: G, node: Node, nodeStyle?: { radius?: number; fill?: string }): Circle;
+  createLine(g: G, node: Node, to: Node, strokeStyle?: StrokeData): Path;
+  createPath(g: G, D: PathCommand[], strokeStyle?: StrokeData): Path;
 
   // eslint-disable-next-line
   onAction?(p?: any): void;
 
   onPointerDown?(
     e: PointerEvent,
-    world: { x: number; y: number }
+    world: { x: number; y: number },
   ): { isPanAllowed: boolean } | void;
   onPointerMove?(e: PointerEvent, world: { x: number; y: number }): void;
   onPointerUp?(e: PointerEvent, world: { x: number; y: number }): void;
   onRender?(renderer: SvgRenderer, data: GraphData): void; // optional special visuals
 }
 
-export type ScreenToWorld = (
-  clientX: number,
-  clientY: number
-) => { x: number; y: number };
+export type ScreenToWorld = (clientX: number, clientY: number) => { x: number; y: number };

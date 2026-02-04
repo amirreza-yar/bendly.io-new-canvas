@@ -1,11 +1,11 @@
-import { G } from "@svgdotjs/svg.js";
-import { Node } from "../../types/types";
-import { BaseMode } from "./base";
-import { graphStore } from "../../store/store";
-import { createCurshFoldD } from "../helpers/fold";
+import { G } from '@svgdotjs/svg.js';
+import { Node } from '@/lib/graph/types/types';
+import { BaseMode } from './base';
+import { graphStore } from '@/lib/graph/store/store';
+import { createCurshFoldD } from '@/lib/graph/engine/helpers/fold';
 
 export class FoldMode extends BaseMode {
-  name = "fold";
+  name = 'fold';
 
   constructor() {
     super();
@@ -16,11 +16,8 @@ export class FoldMode extends BaseMode {
     const isLastNode = node.next_node_id === undefined;
     const state = graphStore.getState();
 
-    if (
-      !(isFirstNode && state.data?.startCrushFold) &&
-      !(isLastNode && state.data?.endCrushFold)
-    ) {
-      g.circle(this.NODE_RADIUS).center(0, 0).fill("#000");
+    if (!(isFirstNode && state.data?.startCrushFold) && !(isLastNode && state.data?.endCrushFold)) {
+      g.circle(this.NODE_RADIUS).center(0, 0).fill('#000');
     }
   }
 
@@ -32,24 +29,20 @@ export class FoldMode extends BaseMode {
       g.path(D)
         .stroke({
           width: this.LINE_STROKE_WIDTH,
-          color: "#000",
-          linecap: "round",
+          color: '#000',
+          linecap: 'round',
         })
-        .fill("#00000000");
+        .fill('#00000000');
     } else {
       g.line(node.x, node.y, to.x, to.y).stroke({
         width: this.LINE_STROKE_WIDTH,
-        color: "#000",
-        linecap: "round",
+        color: '#000',
+        linecap: 'round',
       });
     }
   }
 
-  onAction(s: {
-    startCrushFold?: boolean;
-    endCrushFold?: boolean;
-    crushFoldDir?: boolean;
-  }) {
+  onAction(s: { startCrushFold?: boolean; endCrushFold?: boolean; crushFoldDir?: boolean }) {
     const state = graphStore.getState();
 
     state.beginHistory();

@@ -1,10 +1,10 @@
-import { G } from "@svgdotjs/svg.js";
-import { graphStore } from "../../store/store";
-import { Node } from "../../types/types";
-import { BaseMode } from "./base";
+import { G } from '@svgdotjs/svg.js';
+import { graphStore } from '@/lib/graph/store/store';
+import { Node } from '@/lib/graph/types/types';
+import { BaseMode } from './base';
 
 export class MoveMode extends BaseMode {
-  name = "move";
+  name = 'move';
   isPanAllowed = true;
   selectedNode: Node | null = null;
 
@@ -17,22 +17,22 @@ export class MoveMode extends BaseMode {
   }
 
   nodeObject(g: G, node: Node) {
-    g.circle(this.NODE_RADIUS).center(0, 0).fill("#1ca010");
+    g.circle(this.NODE_RADIUS).center(0, 0).fill('#1ca010');
 
     g.circle(this.NODE_OVERLAY_RADIUS)
       .center(0, 0)
-      .fill("#1ca01044")
+      .fill('#1ca01044')
       .stroke({
         width: this.LINE_STROKE_WIDTH - 1,
-        color: "#1ca010",
-        linecap: "round",
-        dasharray: "5",
+        color: '#1ca010',
+        linecap: 'round',
+        dasharray: '5',
       });
 
     g.circle(this.NODE_HIT_WIDTH)
       .center(0, 0)
-      .fill("#ff00002f")
-      .on("pointerdown", () => {
+      .fill('#ff00002f')
+      .on('pointerdown', () => {
         this.selectedNode = node;
         this.moved = false;
         this.isPanAllowed = false;
@@ -42,8 +42,8 @@ export class MoveMode extends BaseMode {
   edgeObject(g: G, node: Node, to: Node) {
     g.line(node.x, node.y, to.x, to.y).stroke({
       width: this.LINE_STROKE_WIDTH,
-      color: "#000",
-      linecap: "round",
+      color: '#000',
+      linecap: 'round',
     });
   }
 

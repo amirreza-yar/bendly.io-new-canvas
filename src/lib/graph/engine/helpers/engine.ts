@@ -1,6 +1,6 @@
-import { GraphData, Point } from "../../types/types";
-import { segmentsIntersect } from "./geometry";
-import { type Svg } from "@svgdotjs/svg.js";
+import { GraphData, Point } from '@/lib/graph/types/types';
+import { segmentsIntersect } from './geometry';
+import { type Svg } from '@svgdotjs/svg.js';
 
 export function getEdges(data: GraphData) {
   const edges: { a: Point; b: Point; aId: string; bId: string }[] = [];
@@ -30,12 +30,7 @@ export function hasEdgeCrossing(data: GraphData): boolean {
       const e2 = edges[j];
 
       // skip shared endpoints
-      if (
-        e1.aId === e2.aId ||
-        e1.aId === e2.bId ||
-        e1.bId === e2.aId ||
-        e1.bId === e2.bId
-      ) {
+      if (e1.aId === e2.aId || e1.aId === e2.bId || e1.bId === e2.aId || e1.bId === e2.bId) {
         continue;
       }
 
@@ -55,7 +50,7 @@ export function getViewBox(draw: Svg) {
 export function shortId(length = 6): string {
   const bytes = crypto.getRandomValues(new Uint8Array(length));
   return btoa(String.fromCharCode(...bytes))
-    .replace(/[+/=]/g, "")
+    .replace(/[+/=]/g, '')
     .slice(0, length);
 }
 
@@ -69,7 +64,7 @@ export function screenToWorld(
     y: number;
     width: number;
     height: number;
-  }
+  },
 ) {
   const sx = clientX - rect.left;
   const sy = clientY - rect.top;
@@ -89,7 +84,7 @@ export function worldToScreen(
     y: number;
     width: number;
     height: number;
-  }
+  },
 ) {
   return {
     x: rect.left + ((wx - vb.x) / vb.width) * rect.width,

@@ -1,4 +1,4 @@
-import { Node, Point } from "../../types/types";
+import { Node, Point } from '@/lib/graph/types/types';
 
 function orient(a: Point, b: Point, c: Point) {
   return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
@@ -13,12 +13,7 @@ function onSegment(a: Point, b: Point, c: Point) {
   );
 }
 
-export function segmentsIntersect(
-  p1: Point,
-  p2: Point,
-  p3: Point,
-  p4: Point
-): boolean {
+export function segmentsIntersect(p1: Point, p2: Point, p3: Point, p4: Point): boolean {
   const o1 = orient(p1, p2, p3);
   const o2 = orient(p1, p2, p4);
   const o3 = orient(p3, p4, p1);
@@ -34,11 +29,7 @@ export function segmentsIntersect(
   return false;
 }
 
-export function isAngleInverted(
-  pNode: Node,
-  baseNode: Node,
-  nNode: Node
-): boolean | null {
+export function isAngleInverted(pNode: Node, baseNode: Node, nNode: Node): boolean | null {
   const ux = pNode.x - baseNode.x,
     uy = pNode.y - baseNode.y,
     vx = nNode.x - baseNode.x,
@@ -63,7 +54,7 @@ export function calculateAngle(
   px: number,
   py: number,
   bx: number,
-  by: number
+  by: number,
 ): number {
   const ux = ax - px,
     uy = ay - py,
@@ -92,28 +83,19 @@ export function getFinalChangeAngleRad(
   pNode: Node,
   baseNode: Node,
   nNode: Node,
-  newAngle: number
+  newAngle: number,
 ): number {
-  const currentAngle = calculateAngle(
-    pNode.x,
-    pNode.y,
-    baseNode.x,
-    baseNode.y,
-    nNode.x,
-    nNode.y
-  );
+  const currentAngle = calculateAngle(pNode.x, pNode.y, baseNode.x, baseNode.y, nNode.x, nNode.y);
 
   return degree2Rad(
-    isAngleInverted(pNode, baseNode, nNode)
-      ? newAngle - currentAngle
-      : currentAngle - newAngle
+    isAngleInverted(pNode, baseNode, nNode) ? newAngle - currentAngle : currentAngle - newAngle,
   );
 }
 
 export function getChangeAngleDiff(
   baseNode: Node,
   nNode: Node,
-  finRadAngle: number
+  finRadAngle: number,
 ): { rotatedDX: number; rotatedDY: number } {
   const dx = nNode.x - baseNode.x,
     dy = nNode.y - baseNode.y,
@@ -133,10 +115,66 @@ export function calculateLineAngle(node1: Node, node2: Node) {
   return Math.atan2(dy, dx) * (180 / Math.PI);
 }
 
+type LongestLineResult = {
+  from: Node;
+  to: Node;
+  length: number;
+};
+
+export function getLongestLine(nodes: Map<string, Node> | undefined): LongestLineResult | null {
+  if (!nodes) return null;
+
+  let maxLength = -Infinity;
+  let fromNode: Node | null = null;
+  let toNode: Node | null = null;
+
+  const visitedEdges = new Set<string>();
+
+  for (const node of nodes.values()) {
+    const tryEdge = (otherId?: string) => {
+      if (!otherId) return;
+
+      const other = nodes.get(otherId);
+      if (!other) return;
+
+      // canonical edge key to avoid double counting
+      const key =
+        node.node_id < other.node_id
+          ? `${node.node_id}-${other.node_id}`
+          : `${other.node_id}-${node.node_id}`;
+
+      if (visitedEdges.has(key)) return;
+      visitedEdges.add(key);
+
+      const dx = node.x - other.x;
+      const dy = node.y - other.y;
+      const length = Math.hypot(dx, dy);
+
+      if (length > maxLength) {
+        maxLength = length;
+
+        fromNode = node;
+        toNode = other;
+      }
+    };
+
+    tryEdge(node.next_node_id);
+    tryEdge(node.prev_node_id);
+  }
+
+  if (!fromNode || !toNode) return null;
+
+  return {
+    from: fromNode,
+    to: toNode,
+    length: maxLength,
+  };
+}
+
 export function getChangeLengthDiff(
   node1: Node,
   node2: Node,
-  newLength: number
+  newLength: number,
 ): { dx: number; dy: number } {
   const currentLength = calculateLength(node1, node2);
   const f = newLength / currentLength;
@@ -151,7 +189,7 @@ export function createCrushFoldCoords(
   M: Node,
   CRUSH_FOLD_OFFSET: number,
   angle: number,
-  crushFoldDirValue: 1 | -1
+  crushFoldDirValue: 1 | -1,
 ): { A1: Point; A2: Point; A3: Point; A4: Point } {
   const A1 = {
     y: M.y - CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
@@ -159,25 +197,13 @@ export function createCrushFoldCoords(
   };
 
   const A2 = {
-    y:
-      A1.y +
-      CRUSH_FOLD_OFFSET *
-        Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
-    x:
-      A1.x +
-      CRUSH_FOLD_OFFSET *
-        Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    y: A1.y + CRUSH_FOLD_OFFSET * Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    x: A1.x + CRUSH_FOLD_OFFSET * Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
   };
 
   const A3 = {
-    y:
-      M.y +
-      CRUSH_FOLD_OFFSET *
-        Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
-    x:
-      M.x +
-      CRUSH_FOLD_OFFSET *
-        Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    y: M.y + CRUSH_FOLD_OFFSET * Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    x: M.x + CRUSH_FOLD_OFFSET * Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
   };
 
   const A4 = {
@@ -188,9 +214,69 @@ export function createCrushFoldCoords(
   return { A1, A2, A3, A4 };
 }
 
-export function snapToGrid(
-  value: number,
-  gap: number
-): number {
+export function snapToGrid(value: number, gap: number): number {
   return Math.round(value / gap) * gap;
+}
+
+export function vec(a: Point, b: Point) {
+  return { x: b.x - a.x, y: b.y - a.y };
+}
+
+export function len(v: { x: number; y: number }) {
+  return Math.hypot(v.x, v.y);
+}
+
+export function norm(v: { x: number; y: number }) {
+  const l = len(v) || 1;
+  return { x: v.x / l, y: v.y / l };
+}
+
+export function dot(a: Point, b: Point) {
+  return a.x * b.x + a.y * b.y;
+}
+
+export function cross(a: Point, b: Point) {
+  return a.x * b.y - a.y * b.x;
+}
+
+export function angleBetween(u: Point, v: Point) {
+  const d = dot(u, v) / (len(u) * len(v));
+  return Math.acos(Math.max(-1, Math.min(1, d))); // radians, safe
+}
+
+export function angleOf(v: Point) {
+  return Math.atan2(v.y, v.x); // -PI..PI
+}
+
+export function computeAngle(A: Point, B: Point, C: Point) {
+  const v1 = norm(vec(B, A)); // BA
+  const v2 = norm(vec(B, C)); // BC
+
+  const angle = angleBetween(v1, v2); // [0..PI]
+
+  // Direction via cross product
+  const dir = cross(v1, v2) > 0 ? 1 : -1; // CCW or CW
+
+  // Start/end angles for arc
+  const start = angleOf(v1);
+  let end = angleOf(v2);
+
+  // Normalize to ensure we draw the smaller arc
+  let delta = end - start;
+  if (dir > 0 && delta < 0) delta += Math.PI * 2;
+  if (dir < 0 && delta > 0) delta -= Math.PI * 2;
+
+  if (Math.abs(delta) > Math.PI) {
+    // flip direction to keep smaller angle
+    delta = delta > 0 ? delta - 2 * Math.PI : delta + 2 * Math.PI;
+  }
+
+  end = start + delta;
+
+  return {
+    angle, // radians (always <= PI)
+    startAngle: start,
+    endAngle: end,
+    direction: delta > 0 ? 1 : -1,
+  };
 }

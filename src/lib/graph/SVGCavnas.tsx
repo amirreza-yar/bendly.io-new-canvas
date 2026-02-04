@@ -1,10 +1,10 @@
 // SvgCanvas.tsx
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { initSvgEngine } from "./engine/engine";
-import { graphStore } from "./store/store";
-import type { GraphData } from "./types/types";
+import { useEffect, useRef } from 'react';
+import { initSvgEngine } from './engine/engine';
+import { graphStore } from './store/store';
+import type { GraphData } from './types/types';
 
 export default function SvgCanvas({ initialData }: { initialData: GraphData }) {
   const ref = useRef<SVGSVGElement | null>(null);
@@ -27,8 +27,8 @@ export default function SvgCanvas({ initialData }: { initialData: GraphData }) {
       width="100%"
       height="100%"
       style={{
-        background: "#fafafa",
-        touchAction: "none",
+        background: '#fafafa',
+        touchAction: 'none',
       }}
     />
   );
