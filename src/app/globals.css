@@ -1,10 +1,11 @@
 @import 'tailwindcss';
-/* @import "tw-animate-css"; */
-@import "shadcn/tailwind.css";
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-canvas-background: var(--canvas-background);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -50,6 +51,9 @@
 }
 
 :root {
+  height: 100dvh;
+
+  --canvas-background: oklch(1 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -85,6 +89,7 @@
 }
 
 .dark {
+  --canvas-background: oklch(25.277% 0.00375 286.023);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -119,10 +124,47 @@
 }
 
 @layer base {
+  html {
+    touch-action: manipulation;
+  }
+
   * {
     @apply border-border outline-ring/50;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
   }
+
+  input,
+  textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  canvas,
+  .canvas-root {
+    cursor: crosshair;
+    touch-action: none;
+    pointer-events: auto;
+  }
+
+  ::selection {
+    background: transparent;
+  }
+
+  img {
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground w-screen h-screen;
+    overscroll-behavior: none;
+    touch-action: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
 }

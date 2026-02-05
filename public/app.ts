@@ -1,6 +1,6 @@
 // app.ts
-import { graphStore } from '@/lib/graph/store/store';
-import { initEngine } from '@/lib/graph/engine/engine';
+import { graphStore } from '@/lib/flashing/store/store';
+import { initEngine } from '@/lib/flashing/engine/engine';
 
 const root = document.getElementById('app')!;
 initEngine(root);

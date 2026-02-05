@@ -42,7 +42,7 @@ function DrawerContent({
   children,
   showNob = true,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Content> & { showNob: boolean }) {
+}: React.ComponentProps<typeof DrawerPrimitive.Content> & { showNob?: boolean }) {
   return (
     <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />

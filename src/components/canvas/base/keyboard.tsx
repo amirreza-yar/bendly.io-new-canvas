@@ -38,7 +38,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('1')}
         >
           1
@@ -46,7 +46,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('2')}
         >
           2
@@ -54,18 +54,18 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('3')}
         >
           3
         </Button>
-        <Button variant="ghost" size="lg" className="bg-white shadow-sm text-xl" disabled>
+        <Button variant="ghost" size="lg" className="bg-background shadow-sm text-xl" disabled>
           <ArrowLeft className="size-5" />
         </Button>
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('4')}
         >
           4
@@ -73,7 +73,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('5')}
         >
           5
@@ -81,18 +81,18 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('6')}
         >
           6
         </Button>
-        <Button variant="ghost" size="lg" className="bg-white shadow-sm text-xl" disabled>
+        <Button variant="ghost" size="lg" className="bg-background shadow-sm text-xl" disabled>
           <ArrowRight className="size-5" />
         </Button>
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('7')}
         >
           7
@@ -100,7 +100,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('8')}
         >
           8
@@ -108,7 +108,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('9')}
         >
           9
@@ -116,7 +116,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={backspace}
         >
           <Delete className="size-5" />
@@ -124,7 +124,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('.')}
         >
           .
@@ -132,7 +132,7 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-white shadow-sm text-xl col-span-2"
+          className="bg-background shadow-sm text-xl col-span-2"
           onClick={() => append('0')}
         >
           0

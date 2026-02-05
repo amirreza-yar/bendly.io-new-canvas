@@ -2,15 +2,15 @@ import { CircleQuestion } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
 import { Check, X } from 'lucide-react';
-import { ResizeModeComponentProps } from '.';
 import { CancelAlertDialog } from './alert';
+import { MoveModeComponentProps } from '.';
 
-export default function ResizeModeHeader({
+export default function MoveModeHeader({
   componentProps,
   onSave,
   onCancel,
 }: {
-  componentProps: ResizeModeComponentProps;
+  componentProps: MoveModeComponentProps;
   onSave: () => void;
   onCancel: () => void;
 }) {
@@ -38,8 +38,8 @@ export default function ResizeModeHeader({
         <Item className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-md">
           <ItemContent>
             <p>
-              <span className="font-bold">Adjust.</span> Select a line or node to adjust
-              length/angle
+              <span className="font-bold">Move.</span> Drag nodes to reshape your drawing, then tap
+              Apply at the top
             </p>
           </ItemContent>
           <ItemActions>
