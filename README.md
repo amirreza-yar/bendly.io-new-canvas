@@ -12,3 +12,6 @@ Written in pure TS using `zustand`, `svg.js` and some other libs.
 - Min / Max for each line length
 - Min / Max for total Girth
 - Min / Max for angle between line pair
+
+- For angles bellow 35 deg show warning!
+- For inch should be fixed 2 decimal points

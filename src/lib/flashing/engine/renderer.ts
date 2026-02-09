@@ -147,7 +147,7 @@ export class SvgRenderer extends BaseSvgRenderer {
       const to = data.nodes.get(node.next_node_id);
       if (!to) return;
 
-      activeMode.edgeObject(g, node, to);
+      activeMode.edgeObject(g, node, to, undefined, this.extraLayer.group());
     });
 
     data.nodes?.forEach((node) => {

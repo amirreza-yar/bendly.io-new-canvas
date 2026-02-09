@@ -36,7 +36,7 @@ export interface Mode {
 
   initMode?(nodes: Map<string, Node>, g: G): void;
   nodeObject(g: G, node?: Node, render?: () => void): void;
-  edgeObject(g: G, node: Node, to: Node, render?: () => void): void;
+  edgeObject(g: G, node: Node, to: Node, render?: () => void, extraLayer?: G): void;
   annotaionObjects?(nodes: Map<string, Node>, g: G): void;
 
   createNode(g: G, node: Node, nodeStyle?: { radius?: number; fill?: string }): Circle;

@@ -76,13 +76,7 @@ export function createCurshFoldD(
   if (crushFoldState === undefined) return undefined;
   const { crushFoldDirValue, baseM, M, angle } = crushFoldState;
 
-  const { A1, A2, A3, A4 } = createCrushFoldCoords(
-    baseM,
-    M,
-    CRUSH_FOLD_OFFSET,
-    angle,
-    crushFoldDirValue,
-  );
+  const { A1, A2, A3, A4 } = createCrushFoldCoords(M, CRUSH_FOLD_OFFSET, angle, crushFoldDirValue);
 
   return [
     ['M', baseM.x, baseM.y],

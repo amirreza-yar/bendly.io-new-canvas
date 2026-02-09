@@ -9,7 +9,6 @@ import {
   getChangeLengthDiff,
   getFinalChangeAngleRad,
 } from '@/lib/flashing/engine/helpers/geometry';
-import { createCurshFoldD } from '@/lib/flashing/engine/helpers/fold';
 import { Resize, ResizeBold } from '@/components/icons';
 import { Dispatch, SetStateAction } from 'react';
 import { ResizeModeComponentProps, ResizeModeUI } from '@/components/canvas/resize';
@@ -35,16 +34,124 @@ export class ResizeMode extends BaseMode {
   onUIReady(setModeProps: Dispatch<SetStateAction<ResizeModeComponentProps>>) {
     this.setModeProps = setModeProps;
 
-    this.applyValue = this.applyValue.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onCancel = this.onCancel.bind(this);
-
     setModeProps((prev) => ({
       ...prev,
-      onApplyValue: this.applyValue,
-      onSave: this.onSave,
-      onCancel: this.onCancel,
+      onApplyValue: this.applyValue.bind(this),
+      onSave: this.onSave.bind(this),
+      onCancel: this.onCancel.bind(this),
+      onDeselect: this.onDeselect.bind(this),
+      onSelectNext: this.onSelectNext.bind(this),
+      onSelectPrev: this.onSelectPrev.bind(this),
     }));
+  }
+
+  onDeselect() {
+    this.sLine = null;
+    this.sNode = null;
+  }
+
+  getSelection(): { type: string; id: string } | null {
+    if (this.sLine) {
+      return { type: 'line', id: this.sLine?.split('-')[0] };
+    }
+
+    if (this.sNode) {
+      return { type: 'node', id: this.sNode };
+    }
+
+    return null;
+  }
+
+  setCanNext(node: Node) {
+    if (node.next_node_id !== undefined) {
+      this.setModeProps?.((prev) => ({
+        ...prev,
+        canSelectNext: true,
+      }));
+    } else {
+      this.setModeProps?.((prev) => ({
+        ...prev,
+        canSelectNext: false,
+      }));
+    }
+  }
+
+  setCanPrev(node: Node) {
+    if (node.prev_node_id !== undefined) {
+      this.setModeProps?.((prev) => ({
+        ...prev,
+        canSelectPrev: true,
+      }));
+    } else {
+      this.setModeProps?.((prev) => ({
+        ...prev,
+        canSelectPrev: false,
+      }));
+    }
+  }
+
+  onSelectNext() {
+    const state = graphStore.getState();
+    const nodes = state.data?.nodes;
+    if (!nodes) return;
+
+    const { type, id } = this.getSelection() ?? {};
+
+    if (!type || !id) return;
+
+    if (type === 'line') {
+      const node = nodes.get(id);
+      if (!node) return;
+
+      const nextNode = nodes.get(node.next_node_id ?? '');
+      if (!nextNode) return;
+
+      const nextNextNode = nodes.get(nextNode.next_node_id ?? '');
+      if (!nextNextNode) return;
+
+      // this.onLinePointerDown(nextNode, nextNextNode, false);
+      this.onNodePointerDown(node, nextNode, nextNextNode);
+    } else if (type === 'node') {
+      const node = nodes.get(id);
+      if (!node) return;
+
+      const nextNode = nodes.get(node.next_node_id ?? '');
+
+      if (!nextNode) return;
+
+      this.onLinePointerDown(node, nextNode, false);
+    }
+  }
+
+  onSelectPrev() {
+    const state = graphStore.getState();
+    const nodes = state.data?.nodes;
+    if (!nodes) return;
+
+    const { type, id } = this.getSelection() ?? {};
+
+    if (!type || !id) return;
+
+    if (type === 'line') {
+      const node = nodes.get(id);
+      if (!node) return;
+
+      const nextNode = nodes.get(node.next_node_id ?? '');
+      if (!nextNode) return;
+
+      const prevNode = nodes.get(node.prev_node_id ?? '');
+      if (!prevNode) return;
+
+      this.onNodePointerDown(prevNode, node, nextNode);
+    } else if (type === 'node') {
+      const node = nodes.get(id);
+      if (!node) return;
+
+      const prevNode = nodes.get(node.prev_node_id ?? '');
+
+      if (!prevNode) return;
+      this.onLinePointerDown(prevNode, node, false);
+    }
   }
 
   onSave() {
@@ -89,6 +196,10 @@ export class ResizeMode extends BaseMode {
       if (!node1 || !node2) return;
 
       const { dx, dy } = getChangeLengthDiff(node1, node2, s);
+
+      if (node1.next_line_bside_length) {
+        delete node1.next_line_bside_length;
+      }
 
       let tNode: Node | null | undefined = node2;
 
@@ -136,6 +247,7 @@ export class ResizeMode extends BaseMode {
     nodes.forEach((node) => {
       const to = nodes.get(node.next_node_id ?? '');
       if (!to) return;
+      const isSLine = this.sLine?.split('-')[0] === node.node_id;
       const anno = createLengthAnno(
         node,
         to,
@@ -143,6 +255,7 @@ export class ResizeMode extends BaseMode {
         scale,
         this.ANNO_TEXT_SIZE,
         this.ANNO_CHANGE_SCALE_OFFSET,
+        isSLine ? 'var(--anno-length-selected)' : undefined,
       );
       lengthAnnoObjects.push({ object: anno, node: node, to: to });
     });
@@ -160,6 +273,7 @@ export class ResizeMode extends BaseMode {
         scale,
         this.ANNO_TEXT_SIZE,
         this.ANNO_CHANGE_SCALE_OFFSET,
+        this.sNode === node.node_id ? 'var(--anno-angle-selected)' : undefined,
       );
       angleAnnoObjects.push({ object: anno, prev, node, to });
     });
@@ -185,7 +299,6 @@ export class ResizeMode extends BaseMode {
     const state = graphStore.getState();
     if (this.sNode === node.node_id) {
       this.sNode = null;
-      state.setCanDoModeAction(false);
       this.setModeProps?.((prev) => ({
         ...prev,
         value: null,
@@ -193,6 +306,8 @@ export class ResizeMode extends BaseMode {
         type: 'line',
         drawerOpen: false,
         triggerCenterCon: false,
+        canSelectNext: false,
+        canSelectPrev: false,
       }));
     } else {
       this.sNode = node.node_id;
@@ -206,11 +321,9 @@ export class ResizeMode extends BaseMode {
         type: 'node',
         drawerOpen: true,
         triggerCenterCon: true,
+        canSelectNext: true,
+        canSelectPrev: true,
       }));
-
-      state.setModeMeta(angle);
-
-      state.setCanDoModeAction(true);
     }
     this.sLine = null;
 
@@ -221,7 +334,6 @@ export class ResizeMode extends BaseMode {
     const state = graphStore.getState();
     if (isSLine) {
       this.sLine = null;
-      state.setCanDoModeAction(false);
       this.setModeProps?.((prev) => ({
         ...prev,
         value: null,
@@ -229,10 +341,16 @@ export class ResizeMode extends BaseMode {
         type: 'line',
         drawerOpen: false,
         triggerCenterCon: false,
+        canSelectNext: false,
+        canSelectPrev: false,
       }));
     } else {
       const length = calculateLength(node, to);
       this.sLine = `${node.node_id}-${to.node_id}`;
+
+      const canNext = to.next_node_id !== undefined;
+      const canPrev = node.prev_node_id !== undefined;
+
       this.setModeProps?.((prev) => ({
         ...prev,
         value: length.toFixed(1),
@@ -240,9 +358,9 @@ export class ResizeMode extends BaseMode {
         type: 'line',
         drawerOpen: true,
         triggerCenterCon: true,
+        canSelectNext: canNext,
+        canSelectPrev: canPrev,
       }));
-      state.setModeMeta(length);
-      state.setCanDoModeAction(true);
     }
 
     this.sNode = null;
@@ -264,6 +382,27 @@ export class ResizeMode extends BaseMode {
     }
 
     if (nNode && pNode) {
+      if (this.sNode === node.node_id) {
+        this.createNode(g, node, {
+          radius: this.getFlexStrokeWidth() * 12,
+          fill: 'var(--anno-length-selected)',
+        }).opacity(0.2);
+
+        this.createNode(
+          g,
+          node,
+          {
+            radius: this.getFlexStrokeWidth() * 12,
+            fill: '#00000000',
+          },
+          {
+            color: 'var(--anno-length-selected)',
+            dasharray: `${Math.round(this.getFlexStrokeWidth() * 2)}`,
+            linecap: 'round',
+          },
+        );
+      }
+
       this.createNode(g, node, {
         radius: this.getFlexStrokeWidth() * 15,
         fill: '#00000000',
@@ -278,30 +417,26 @@ export class ResizeMode extends BaseMode {
   edgeObject(g: G, node: Node, to: Node): void {
     const isSLine = this.sLine?.split('-')[0] === node.node_id;
 
-    const D = createCurshFoldD(node, to, this.getCrushFoldOffset());
+    const pathD = this.createLineORFoldPathData(node, to).data;
 
-    if (D !== undefined) {
-      this.createPath(g, D, {
-        color: isSLine ? 'var(--primary)' : 'var(--secondary-foreground)',
-      });
+    this.createPath(g, pathD, {
+      color: isSLine ? 'var(--primary)' : undefined,
+      dasharray: isSLine ? `${Math.round(this.getFlexStrokeWidth() * 3)}` : undefined,
+    });
 
-      this.createPath(g, D, {
-        width: this.getFlexStrokeWidth() * 10,
-      }).on('pointerdown', () => {
-        this.onLinePointerDown(node, to, isSLine);
-      });
-    } else {
-      this.createLine(g, node, to, {
-        color: isSLine ? 'var(--primary)' : 'var(--secondary-foreground)',
-      });
-
-      this.createLine(g, node, to, {
-        color: '#00000000',
-        width: this.getFlexStrokeWidth() * 10,
-      }).on('pointerdown', () => {
-        this.onLinePointerDown(node, to, isSLine);
-      });
+    if (isSLine) {
+      this.createPath(g, pathD, {
+        color: 'var(--primary)',
+        width: this.getFlexStrokeWidth() * 5,
+      }).opacity(0.2);
     }
+
+    this.createPath(g, pathD, {
+      color: '#00000000',
+      width: this.getFlexStrokeWidth() * 10,
+    }).on('pointerdown', () => {
+      this.onLinePointerDown(node, to, isSLine);
+    });
   }
 
   onPointerDown(e: MouseEvent) {
@@ -311,9 +446,7 @@ export class ResizeMode extends BaseMode {
     if (e.target?.instance.type === 'svg') {
       this.sLine = null;
       this.sNode = null;
-      state.setModeMeta(null);
       state.setTriggerRender(true);
-      state.setCanDoModeAction(false);
     }
   }
 }

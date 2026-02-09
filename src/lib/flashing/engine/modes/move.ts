@@ -5,11 +5,12 @@ import { BaseMode } from './base';
 import { MoveModeComponentProps, MoveModeUI } from '@/components/canvas/move';
 import { Dispatch, SetStateAction } from 'react';
 import { toast } from 'sonner';
-import { createAngleAnno, createLengthAnno, createLengthAnnotations } from '../helpers/annotation';
+import { createAngleAnno, createLengthAnnotations } from '../helpers/annotation';
 
 export class MoveMode extends BaseMode {
   name = 'move';
   isPanAllowed = true;
+  drawFolds = false;
   selectedNode: Node | null = null;
 
   historyStarted: boolean = false;
@@ -111,7 +112,7 @@ export class MoveMode extends BaseMode {
 
   nodeObject(g: G, node: Node) {
     this.createNode(g, node, {
-      fill: '#115e0aff',
+      fill: 'var(--move-pointer-foreground)',
     });
 
     this.createNode(
@@ -119,11 +120,11 @@ export class MoveMode extends BaseMode {
       node,
       {
         radius: this.getFlexStrokeWidth() * 10,
-        fill: '#27a51c44',
+        fill: 'var(--move-pointer)',
       },
       {
         width: this.getFlexStrokeWidth(),
-        color: '#26801dff',
+        color: 'var(--move-pointer-foreground)',
         linecap: 'round',
         dasharray: `${Math.round(this.getFlexStrokeWidth() * 2.5)}`,
       },
@@ -152,10 +153,22 @@ export class MoveMode extends BaseMode {
     const state = graphStore.getState();
     if (!state.data) return;
 
+    const nodes = state.data.nodes;
+
     if (!this.historyStarted) {
       state.beginHistory();
       this.historyStarted = true;
       this.setModeProps?.((prev) => ({ ...prev, canApply: true }));
+    }
+
+    const prevNode = nodes.get(this.selectedNode.prev_node_id ?? '');
+
+    if (prevNode?.next_line_bside_length) {
+      delete prevNode.next_line_bside_length;
+    }
+
+    if (this.selectedNode.next_line_bside_length) {
+      delete this.selectedNode.next_line_bside_length;
     }
 
     this.selectedNode.x = world.x - (this.offsetX ?? 0);

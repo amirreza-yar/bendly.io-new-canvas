@@ -31,6 +31,7 @@ export default function DrawModeUI({
 
   useEffect(() => {
     engine.current?.activeMode?.onUIReady?.(setModeProps);
+    // engine.current.renderer.centerRenderedContentAnimated(120, 80, );
   }, [engine]);
 
   return (

@@ -5,12 +5,13 @@ import {
   createAngleAnnotations,
   createLengthAnnotations,
 } from '@/lib/flashing/engine/helpers/annotation';
-import { createCurshFoldD } from '@/lib/flashing/engine/helpers/fold';
 import BaseModeUI from '@/components/canvas/base';
+import { calculateLineAngle, createCrushFoldCoords } from '../helpers/geometry';
 
 export class BaseMode implements Mode {
   name: string = 'draw';
   isPanAllowed: boolean = true;
+  drawFolds: boolean = true;
   drawAnnotations: boolean = true;
   NODE_RADIUS: number = 10;
   NODE_HIT_WIDTH: number = 40;
@@ -53,14 +54,9 @@ export class BaseMode implements Mode {
     }
   }
 
-  edgeObject(g: G, node: Node, to: Node) {
-    const D = createCurshFoldD(node, to, this.getCrushFoldOffset());
-
-    if (D !== undefined) {
-      this.createPath(g, D);
-    } else {
-      this.createLine(g, node, to);
-    }
+  edgeObject(g: G, node: Node, to: Node, render?: () => void, extraLayer?: G) {
+    const { data: pathD } = this.createLineORFoldPathData(node, to);
+    this.createPath(g, pathD);
   }
 
   createNode(
@@ -75,7 +71,8 @@ export class BaseMode implements Mode {
           this.NODE_RADIUS * 0.3,
           Math.min(this.NODE_RADIUS / graphStore.getState().scale, this.NODE_RADIUS * 1.5),
         ),
-      fill = nodeStyle?.fill ?? 'var(--secondary-foreground)',
+      // fill = strokeStyle?.color ?? 'var(--base-drawing-color)',
+      fill = nodeStyle?.fill ?? 'var(--base-drawing)',
       dasharray = strokeStyle?.dasharray,
       width = strokeStyle?.width,
       color = strokeStyle?.color,
@@ -105,7 +102,7 @@ export class BaseMode implements Mode {
 
   createLine(g: G, node: Node, to: Node, strokeStyle?: StrokeData) {
     const width = strokeStyle?.width ?? this.getFlexStrokeWidth(),
-      color = strokeStyle?.color ?? 'var(--secondary-foreground)',
+      color = strokeStyle?.color ?? 'var(--base-drawing)',
       linecap = strokeStyle?.linecap ?? 'round',
       dasharray = strokeStyle?.dasharray;
 
@@ -124,8 +121,9 @@ export class BaseMode implements Mode {
 
   createPath(g: G, D: PathCommand[] | string, strokeStyle?: StrokeData) {
     const width = strokeStyle?.width ?? this.getFlexStrokeWidth(),
-      color = strokeStyle?.color ?? 'var(--secondary-foreground)',
-      linecap = strokeStyle?.linecap ?? 'round';
+      color = strokeStyle?.color ?? 'var(--base-drawing)',
+      linecap = strokeStyle?.linecap ?? 'round',
+      dasharray = strokeStyle?.dasharray;
 
     return g
       .path(D)
@@ -133,7 +131,84 @@ export class BaseMode implements Mode {
         width: width,
         color: color,
         linecap: linecap,
+        dasharray: dasharray,
       })
       .fill('#00000000');
+  }
+
+  shouldAddCrushFold(node: Node, to: Node): { add: boolean; first: boolean } {
+    const state = graphStore.getState();
+    const isFirstNode = node.prev_node_id === undefined;
+    const isLastNode = to.next_node_id === undefined;
+
+    if (isFirstNode && state.data?.startCrushFold) {
+      return { add: true, first: true };
+    }
+
+    if (isLastNode && state.data?.endCrushFold) {
+      return { add: true, first: false };
+    }
+
+    return { add: false, first: false };
+  }
+
+  getCrushFoldDir(isFirst: boolean): 1 | -1 | undefined {
+    const state = graphStore.getState();
+    if (isFirst) {
+      return state.data?.crushFoldDir ? -1 : 1;
+    }
+    if (!isFirst) {
+      return state.data?.crushFoldDir ? 1 : -1;
+    }
+  }
+
+  getCrushFoldAngle(node: Node, to: Node, isFirst: boolean): number | void {
+    const state = graphStore.getState();
+
+    if (isFirst && state.data?.startCrushFold) {
+      return calculateLineAngle(node, to);
+    }
+
+    if (!isFirst && state.data?.endCrushFold) {
+      return calculateLineAngle(to, node);
+    }
+  }
+
+  createLineORFoldPathData(node: Node, to: Node): { data: PathCommand[] } {
+    if (!this.drawFolds) {
+      return {
+        data: [
+          ['M', node.x, node.y],
+          ['L', to.x, to.y],
+        ],
+      };
+    }
+
+    const { add: shouldAdd, first: isFirst } = this.shouldAddCrushFold(node, to);
+    if (!shouldAdd) {
+      return {
+        data: [
+          ['M', node.x, node.y],
+          ['L', to.x, to.y],
+        ],
+      };
+    }
+
+    const foldDir = this.getCrushFoldDir(isFirst);
+    const angle = this.getCrushFoldAngle(node, to, isFirst);
+    const M = isFirst ? node : to;
+    const baseM = isFirst ? to : node;
+    const offset = this.getCrushFoldOffset();
+
+    const { A1, A2, A3, A4 } = createCrushFoldCoords(M, offset, angle!, foldDir!);
+
+    return {
+      data: [
+        ['M', baseM.x, baseM.y],
+        ['L', M.x, M.y],
+        ['C', A1.x, A1.y, A2.x, A2.y, A3.x, A3.y],
+        ['L', A4.x, A4.y],
+      ],
+    };
   }
 }

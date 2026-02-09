@@ -9,6 +9,7 @@ import { useGraphStore } from '@/lib/flashing/store/useStore';
 
 export type FoldModeComponentProps = {
   triggerCenterCon: boolean;
+  onToggleFoldDir?: () => void;
   onSave: () => boolean;
   onCancel: () => boolean;
   canApply: boolean;
@@ -21,6 +22,7 @@ export function FoldModeUI({ engine }: { engine: RefObject<Engine> }) {
     triggerCenterCon: false,
     onSave: () => false,
     onCancel: () => false,
+    onToggleFoldDir: () => {},
     canApply: false,
   });
 
@@ -100,13 +102,7 @@ export function FoldModeUI({ engine }: { engine: RefObject<Engine> }) {
           size="icon-xl"
           variant="ghost"
           className="bg-background shadow-md"
-          onClick={() => {
-            const state = graphStore.getState();
-            state.setData({
-              ...state,
-              crushFoldDir: !state.data?.crushFoldDir,
-            });
-          }}
+          onClick={modeProps.onToggleFoldDir}
           disabled={!canChangeFoldDir}
         >
           <ArrowLeftRight />

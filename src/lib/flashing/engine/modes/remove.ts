@@ -63,6 +63,10 @@ export class RemoveMode extends BaseMode {
         if (!tmpNode) continue;
         tmpNode.prev_node_id = baseNode.node_id;
 
+        if (baseNode.next_line_bside_length) {
+          delete baseNode.next_line_bside_length;
+        }
+
         while (tmpNode) {
           tmpNode.x = tmpNode.x - offsetX;
           tmpNode.y = tmpNode.y - offsetY;
@@ -130,48 +134,61 @@ export class RemoveMode extends BaseMode {
     });
   }
 
+  onLineSelect(node: Node, to: Node, isLineSelected: boolean) {
+    const state = graphStore.getState();
+
+    if (isLineSelected) {
+      this.selectedLines = this.selectedLines?.filter(
+        (line) => line !== `${node.node_id}-${to.node_id}`,
+      );
+    } else {
+      this.selectedLines.push(`${node.node_id}-${to.node_id}`);
+    }
+
+    state.setTriggerRender(true);
+
+    if (this.selectedLines.length > 0) {
+      this.historyStarted = true;
+      this.setModeProps?.((prev) => ({ ...prev, canApply: true }));
+    } else {
+      this.historyStarted = false;
+      this.setModeProps?.((prev) => ({ ...prev, canApply: false }));
+    }
+  }
+
   edgeObject(g: G, node: Node, to: Node) {
     const state = graphStore.getState();
 
+    const pathD = this.createLineORFoldPathData(node, to).data;
     const isLineSelected = this.selectedLines?.includes(`${node.node_id}-${to.node_id}`);
 
-    this.createLine(g, node, to, {
-      color: isLineSelected ? '#da1616ff' : '#000',
+    this.createPath(g, pathD, {
+      color: isLineSelected ? 'var(--remove-line-selected-foreground)' : undefined,
       linecap: 'round',
-      dasharray: isLineSelected ? '10' : '1',
+      dasharray: isLineSelected ? '10' : undefined,
+    }).on('pointerdown', () => {
+      this.onLineSelect(node, to, isLineSelected);
     });
 
     if (isLineSelected) {
-      this.createLine(g, node, to, {
-        width: this.getFlexStrokeWidth() * 3,
-        color: isLineSelected ? '#da161655' : '#000',
+      this.createPath(g, pathD, {
+        width: this.getFlexStrokeWidth() * 6,
+        color: isLineSelected ? 'var(--remove-line-selected)' : undefined,
         linecap: 'round',
+      }).on('pointerdown', () => {
+        this.onLineSelect(node, to, isLineSelected);
       });
     }
 
-    this.createLine(g, node, to, {
+    this.createPath(g, pathD, {
       width: this.getFlexStrokeWidth() * 12,
-      color: '#da161600',
+      color: '#00000000',
       linecap: 'round',
       dasharray: isLineSelected ? '10' : '1',
-    }).on('pointerdown', () => {
-      if (isLineSelected) {
-        this.selectedLines = this.selectedLines?.filter(
-          (line) => line !== `${node.node_id}-${to.node_id}`,
-        );
-      } else {
-        this.selectedLines.push(`${node.node_id}-${to.node_id}`);
-      }
-
-      state.setTriggerRender(true);
-
-      if (this.selectedLines.length > 0) {
-        this.historyStarted = true;
-        this.setModeProps?.((prev) => ({ ...prev, canApply: true }));
-      } else {
-        this.historyStarted = false;
-        this.setModeProps?.((prev) => ({ ...prev, canApply: false }));
-      }
-    });
+    })
+      .front()
+      .on('pointerdown', () => {
+        this.onLineSelect(node, to, isLineSelected);
+      });
   }
 }

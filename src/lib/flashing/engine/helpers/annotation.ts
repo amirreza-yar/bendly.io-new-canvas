@@ -34,11 +34,20 @@ export function createLengthAnno(
   scaleOffset: number,
   bgColor?: string,
   bgColorSec?: string,
+  showTapered: boolean = true,
+  textPrefix: string = '',
 ) {
-  let cl: string = bgColor ?? '#e90000ff';
+  let cl: string =
+    !!node.next_line_bside_length && showTapered
+      ? 'var(--anno-length-tapered)'
+      : 'var(--anno-length-primary)';
+
+  if (bgColor) {
+    cl = bgColor;
+  }
 
   if (scale < scaleOffset) {
-    cl = bgColorSec ?? '#dd5d5dff';
+    cl = bgColorSec ?? 'var(--anno-length-primary-muted)';
   }
 
   const { midX, midY } = lengthAnnotationProps(node, to, 0, true);
@@ -52,11 +61,13 @@ export function createLengthAnno(
   const lineLenght = calculateLength(node, to);
   const label = g.group();
 
+  const isTapered = !!node.next_line_bside_length ? true : false;
+
   label.translate(midX!, midY!);
   label.rotate(angle);
 
   const text = label
-    .text(`${lineLenght.toFixed(0)}`)
+    .text(`${textPrefix}${showTapered && isTapered ? 'N-' : ''}${lineLenght.toFixed(0)}`)
     .font({
       size: Math.max(textSize * 0.3, Math.min(textSize / scale, textSize * 1.5)),
       family: 'sans-serif',
@@ -193,17 +204,19 @@ export function drawAngleText(
   textSize = 12,
   scale: number,
   scaleOffset: number,
+  bgColor?: string,
+  bgColorSec?: string,
 ) {
+  let cl: string = bgColor ?? 'var(--anno-angle-primary)';
+
+  if (scale < scaleOffset) {
+    cl = bgColorSec ?? 'var(--anno-angle-primary-muted)';
+  }
   const mid = (startAngle + endAngle) / 2;
 
   const angle = (angleRad * 180) / Math.PI;
 
   let radiusOffset: number;
-  let cl: string = '#1000e9';
-
-  if (scale < scaleOffset) {
-    cl = '#1000e988';
-  }
 
   if (angle > 60) {
     radiusOffset = Math.max(radius * 0.5, Math.min(radius / scale, radius * 1.2));
@@ -287,6 +300,8 @@ export function createAngleAnno(
   scale: number,
   textSize: number,
   scaleOffset: number,
+  bgColor?: string,
+  bgColorSec?: string,
 ): {
   arc: Polyline;
   label: G | undefined;
@@ -304,6 +319,8 @@ export function createAngleAnno(
     textSize,
     scale,
     scaleOffset,
+    bgColor,
+    bgColorSec,
   );
 
   return {

@@ -5,10 +5,9 @@ import ResizeModeFooter from './footer';
 import { motion } from 'framer-motion';
 import ResizeModeHeader from './header';
 
-export type ResizeModeComponentProps = {
+export type TaperModeComponentProps = {
   selected: boolean;
   value: string | null;
-  type: 'line' | 'node';
   drawerOpen: boolean;
   triggerCenterCon: boolean;
   onApplyValue: (value: string | number) => void;
@@ -22,10 +21,9 @@ export type ResizeModeComponentProps = {
   canApply: boolean;
 };
 
-export function ResizeModeUI({ engine }: { engine: RefObject<Engine> }) {
-  const [modeProps, setModeProps] = useState<ResizeModeComponentProps>({
+export function TaperModeUI({ engine }: { engine: RefObject<Engine> }) {
+  const [modeProps, setModeProps] = useState<TaperModeComponentProps>({
     selected: false,
-    type: 'line',
     value: null,
     drawerOpen: false,
     triggerCenterCon: false,

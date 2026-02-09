@@ -1,26 +1,24 @@
 import { Button } from '@/components/ui/button';
-import { X, RulerDimensionLine, DraftingCompass } from 'lucide-react';
+import { X, RulerDimensionLine } from 'lucide-react';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Badge } from '@/components/ui/badge';
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import { Dispatch, RefObject, SetStateAction, useEffect, useState } from 'react';
 import VirtualKeyboard from '../base/keyboard';
-import { ResizeModeComponentProps } from '.';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import { graphStore } from '@/lib/flashing/store/store';
-import { cn } from '@/lib/utils';
 import { Engine } from '@/lib/flashing/engine/engine';
+import { TaperModeComponentProps } from '.';
 
 export default function ResizeModeFooter({
   componentProps,
   setComponentProps,
   engine,
 }: {
-  componentProps: ResizeModeComponentProps;
-  setComponentProps: Dispatch<SetStateAction<ResizeModeComponentProps>>;
+  componentProps: TaperModeComponentProps;
+  setComponentProps: Dispatch<SetStateAction<TaperModeComponentProps>>;
   engine: RefObject<Engine>;
 }) {
   const [inputVal, setInputVal] = useState<string | null>(null);
-  const inputValRef = useRef<number>(0);
 
   useEffect(() => {
     setInputVal(componentProps.value);
@@ -28,10 +26,10 @@ export default function ResizeModeFooter({
 
   const onSubmitValue = () => {
     const val = Number(inputVal ?? 0);
+
     if (!val) return;
 
-    if (componentProps.type === 'line' && val < 8) return;
-    if (componentProps.type === 'node' && val < 35) return;
+    if (val < 8) return;
 
     if (!componentProps.onApplyValue) return;
 
@@ -55,12 +53,10 @@ export default function ResizeModeFooter({
               value={inputVal ?? 0}
             />
             <InputGroupAddon>
-              {componentProps.type === 'line' ? <RulerDimensionLine /> : <DraftingCompass />}
+              <RulerDimensionLine />
             </InputGroupAddon>
             <InputGroupAddon align="inline-end">
-              <Badge className={cn('px-1 rounded-sm', componentProps.type === 'node' && 'pl-2')}>
-                {componentProps.type === 'line' ? graphStore.getState().unit : ` °`}
-              </Badge>
+              <Badge className="px-1 rounded-sm pl-2">{graphStore.getState().unit}</Badge>
             </InputGroupAddon>
           </InputGroup>
 

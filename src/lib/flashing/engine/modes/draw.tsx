@@ -68,7 +68,7 @@ export class DrawMode extends BaseMode {
 
     if (isEndpoint && isPrimaryActive) {
       this.createNode(g, node, {
-        fill: 'var(--primary)',
+        fill: 'var(--draw-pointer-foreground)',
       });
 
       this.createNode(
@@ -76,11 +76,11 @@ export class DrawMode extends BaseMode {
         node,
         {
           radius: this.getFlexStrokeWidth() * 8,
-          fill: '#1447e644',
+          fill: 'var(--draw-pointer)',
         },
         {
-          width: this.LINE_STROKE_WIDTH - 1,
-          color: 'var(--primary)',
+          width: this.getFlexStrokeWidth() * 0.7,
+          color: 'var(--draw-pointer-foreground)',
           linecap: 'round',
         },
       );

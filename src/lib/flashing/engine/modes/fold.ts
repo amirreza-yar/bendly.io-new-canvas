@@ -2,13 +2,12 @@ import { G } from '@svgdotjs/svg.js';
 import { Node } from '@/lib/flashing/types/types';
 import { BaseMode } from './base';
 import { graphStore } from '@/lib/flashing/store/store';
-import { createCurshFoldD } from '@/lib/flashing/engine/helpers/fold';
 import { FoldModeUI } from '@/components/canvas/fold';
 import { Dispatch, SetStateAction } from 'react';
 import { RemoveModeComponentProps } from '@/components/canvas/remove';
 import { toast } from 'sonner';
 import { calculateLineAngle } from '../helpers/geometry';
-import { createAngleAnnotations, createLengthAnnotations } from '../helpers/annotation';
+import { createLengthAnnotations } from '../helpers/annotation';
 
 const PATH_DATA = `M12.0817 0.75V10.0891C12.0817 11.1932 11.1871 12.0882 10.0835 12.0882C8.67968 12.0882 7.71347 10.6782 8.21964 9.36833L9.22718 6.76096M0.75 8.58577L5.08333 4.25244M0.75 4.25244L5.08333 8.58577`;
 
@@ -25,15 +24,29 @@ export class FoldMode extends BaseMode {
 
   onUIReady(setModeProps: Dispatch<SetStateAction<RemoveModeComponentProps>>) {
     this.setModeProps = setModeProps;
-    this.onSave = this.onSave.bind(this);
-    this.onCancel = this.onCancel.bind(this);
 
     setModeProps((prev) => ({
       ...prev,
-      onSave: this.onSave,
-      onCancel: this.onCancel,
+      onSave: this.onSave.bind(this),
+      onCancel: this.onCancel.bind(this),
+      onToggleFoldDir: this.onToggleFoldDir.bind(this),
       triggerCenterCon: true,
     }));
+  }
+
+  onToggleFoldDir() {
+    const state = graphStore.getState();
+
+    if (!this.historyStarted) {
+      state.beginHistory();
+      this.historyStarted = true;
+      this.setModeProps?.((prev) => ({ ...prev, canApply: true }));
+    }
+
+    state.setData({
+      ...state.data,
+      crushFoldDir: !!state.data?.crushFoldDir ? false : true,
+    });
   }
 
   onSave() {
@@ -166,13 +179,8 @@ export class FoldMode extends BaseMode {
   }
 
   edgeObject(g: G, node: Node, to: Node) {
-    const D = createCurshFoldD(node, to, this.getCrushFoldOffset());
-
-    if (D !== undefined) {
-      this.createPath(g, D);
-    } else {
-      this.createLine(g, node, to);
-    }
+    const { data: pathD } = this.createLineORFoldPathData(node, to);
+    this.createPath(g, pathD);
   }
 
   onAction(s: { startCrushFold?: boolean; endCrushFold?: boolean; crushFoldDir?: boolean }) {

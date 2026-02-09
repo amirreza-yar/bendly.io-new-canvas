@@ -184,31 +184,41 @@ export function getChangeLengthDiff(
   };
 }
 
+export const round5 = (n: number) => Math.round(n * 1e5) / 1e5;
+
 export function createCrushFoldCoords(
-  baseM: Node,
   M: Node,
   CRUSH_FOLD_OFFSET: number,
   angle: number,
   crushFoldDirValue: 1 | -1,
 ): { A1: Point; A2: Point; A3: Point; A4: Point } {
+  if (
+    !Number.isFinite(M.x) ||
+    !Number.isFinite(M.y) ||
+    !Number.isFinite(CRUSH_FOLD_OFFSET) ||
+    !Number.isFinite(angle)
+  ) {
+    console.error('Invalid input', { M, CRUSH_FOLD_OFFSET, angle, crushFoldDirValue });
+  }
+
   const A1 = {
-    y: M.y - CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
     x: M.x - CRUSH_FOLD_OFFSET * Math.cos((angle * Math.PI) / 180),
+    y: M.y - CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
   };
 
   const A2 = {
-    y: A1.y + CRUSH_FOLD_OFFSET * Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
     x: A1.x + CRUSH_FOLD_OFFSET * Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    y: A1.y + CRUSH_FOLD_OFFSET * Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
   };
 
   const A3 = {
-    y: M.y + CRUSH_FOLD_OFFSET * Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
     x: M.x + CRUSH_FOLD_OFFSET * Math.cos(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
+    y: M.y + CRUSH_FOLD_OFFSET * Math.sin(((angle + 90 * crushFoldDirValue) * Math.PI) / 180),
   };
 
   const A4 = {
-    y: A3.y + CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
     x: A3.x + CRUSH_FOLD_OFFSET * Math.cos((angle * Math.PI) / 180),
+    y: A3.y + CRUSH_FOLD_OFFSET * Math.sin((angle * Math.PI) / 180),
   };
 
   return { A1, A2, A3, A4 };

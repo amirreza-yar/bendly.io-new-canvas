@@ -1,34 +1,36 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, ArrowLeft, Delete } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Delete, Check } from 'lucide-react';
 import { Dispatch, SetStateAction } from 'react';
-import { ResizeModeComponentProps } from '../resize';
 
 export default function VirtualKeyboard({
   setInputValue,
+  onSubmitValue,
+  onNext,
+  onPrev,
+  canNext,
+  canPrev,
 }: {
-  setInputValue: Dispatch<SetStateAction<ResizeModeComponentProps>>;
+  setInputValue: Dispatch<SetStateAction<string | null>>;
+  onSubmitValue: () => void;
+  onNext?: () => void;
+  onPrev?: () => void;
+  canNext: boolean;
+  canPrev: boolean;
 }) {
   const append = (char: string) => {
     setInputValue((prev) => {
-      const current = prev.value ?? '';
-
+      const current = prev ?? '';
       if (char === '.' && current.includes('.')) return prev;
 
-      return {
-        ...prev,
-        value: current + char,
-      };
+      return current + char;
     });
   };
 
   const backspace = () => {
     setInputValue((prev) => {
-      const current = prev.value ?? '';
+      const current = prev ?? '';
 
-      return {
-        ...prev,
-        value: current.length > 0 ? current.slice(0, -1) : null,
-      };
+      return current.length > 0 ? current.slice(0, -1) : null;
     });
   };
 
@@ -59,7 +61,13 @@ export default function VirtualKeyboard({
         >
           3
         </Button>
-        <Button variant="ghost" size="lg" className="bg-background shadow-sm text-xl" disabled>
+        <Button
+          variant="ghost"
+          size="lg"
+          className="bg-background shadow-sm text-xl"
+          onClick={onPrev}
+          disabled={!canPrev}
+        >
           <ArrowLeft className="size-5" />
         </Button>
         <Button
@@ -86,7 +94,13 @@ export default function VirtualKeyboard({
         >
           6
         </Button>
-        <Button variant="ghost" size="lg" className="bg-background shadow-sm text-xl" disabled>
+        <Button
+          variant="ghost"
+          size="lg"
+          className="bg-background shadow-sm text-xl"
+          onClick={onNext}
+          disabled={!canNext}
+        >
           <ArrowRight className="size-5" />
         </Button>
         <Button
@@ -132,13 +146,16 @@ export default function VirtualKeyboard({
         <Button
           variant="ghost"
           size="lg"
-          className="bg-background shadow-sm text-xl col-span-2"
+          className="bg-background shadow-sm text-xl"
           onClick={() => append('0')}
         >
           0
         </Button>
-        <Button size="lg" className="shadow-sm text-md" disabled>
+        <Button size="lg" variant="outline" className="shadow-sm text-md" disabled>
           mm
+        </Button>
+        <Button size="lg" className="shadow-sm text-md" onClick={onSubmitValue}>
+          <Check />
         </Button>
       </div>
     </div>

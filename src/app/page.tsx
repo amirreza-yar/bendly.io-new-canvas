@@ -79,8 +79,8 @@ export default function GraphPage() {
     // initialize some data
     graphStore.setState({
       data: {
-        // nodes: new Map<string, Node>(demoData.map((n: Node) => [n.node_id, n])),
-        nodes: new Map(),
+        nodes: new Map<string, Node>(demoData.map((n: Node) => [n.node_id, n])),
+        // nodes: new Map(),
         startCrushFold: false,
         endCrushFold: false,
         crushFoldDir: false,
