@@ -7,22 +7,18 @@ import { useGraphStore } from '@/lib/flashing/store/useStore';
 import { Node } from '@/lib/flashing/types/types';
 import ModeComponent from '@/lib/flashing/components/mode';
 import { PolygonAlertDialog } from '@/components/canvas/base/polygon-alert';
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import {
-  CanvasDropdownGroup,
-  CanvasDropdownItem,
-  CanvasDropdownRoot,
-} from '@/components/canvas/base/line-dropdown';
-import { Drawing } from '@/components/icons';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Spotlight } from 'lucide-react';
 
 // eslint-disable-next-line
 const demoData: Node[] = [
@@ -124,6 +120,25 @@ export default function GraphPage() {
       )}
 
       <PolygonAlertDialog openPolygonAlert={openPolygonAlert} />
+
+      <AlertDialog defaultOpen>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia className="bg-blue-50 text-orange-700">
+              <Spotlight className="size-8" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Welcome!</AlertDialogTitle>
+            <AlertDialogDescription>
+              This is the new Bendly.io canvas. Please use mobile devices to have the best
+              experience. <br />
+              Thank you for using Bendly.io!
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>Let&apos;s Go!</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div
         ref={containerRef}
