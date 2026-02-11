@@ -1,25 +1,22 @@
 import { motion } from 'framer-motion';
-import CanvasHeader from './header';
+import CanvasHeader from './canvas-header';
 import { ReactNode, RefObject } from 'react';
 import { Engine } from '@/lib/flashing/engine/engine';
-import CanvasSide from './side';
-import CanvasNav from './footer';
+import CanvasSide from './canvas-side';
+import CanvasNav from './canvas-nav';
+import { graphStore } from '@/lib/flashing/store/store';
 
-export default function BaseModeUI({
-  engine,
-  props,
-}: {
-  engine: RefObject<Engine>;
-  props:
-    | {
-        activeMode: string;
-        canUndo: boolean;
-        canRedo: boolean;
-        nodesSize: number;
-      }
-    // eslint-disable-next-line
-    | any;
-}): ReactNode {
+export default function BaseModeUI({ engine }: { engine: RefObject<Engine> }): ReactNode {
+  const onUndo = () => {
+    graphStore.getState().undo();
+    engine.current?.renderer.centerRenderedContentAnimated();
+  };
+
+  const onRedo = () => {
+    graphStore.getState().redo();
+    engine.current?.renderer.centerRenderedContentAnimated();
+  };
+
   return (
     <>
       <motion.header
@@ -33,7 +30,7 @@ export default function BaseModeUI({
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
       >
-        <CanvasHeader props={props} />
+        <CanvasHeader onUndo={onUndo} onRedo={onRedo} />
       </motion.header>
 
       <motion.div
@@ -63,7 +60,7 @@ export default function BaseModeUI({
         transition={{ duration: 0.1, ease: 'easeOut' }}
         className="z-5 fixed bottom-4 w-full"
       >
-        <CanvasNav props={props} engine={engine} />
+        <CanvasNav engine={engine} />
       </motion.div>
     </>
   );

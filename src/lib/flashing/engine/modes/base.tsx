@@ -1,12 +1,15 @@
 import { G, PathCommand, StrokeData } from '@svgdotjs/svg.js';
 import { graphStore } from '@/lib/flashing/store/store';
-import { Mode, Node } from '@/lib/flashing/types/types';
+import { AngleAnnoType, LengthAnnoType, Mode, Node } from '@/lib/flashing/types/types';
 import {
   createAngleAnnotations,
+  createLengthAnno,
   createLengthAnnotations,
+  drawAngleArc,
+  drawAngleText,
 } from '@/lib/flashing/engine/helpers/annotation';
 import BaseModeUI from '@/components/canvas/base';
-import { calculateLineAngle, createCrushFoldCoords } from '../helpers/geometry';
+import { calculateLineAngle, computeAngle, createCrushFoldCoords } from '../helpers/geometry';
 
 export class BaseMode implements Mode {
   name: string = 'draw';
@@ -23,6 +26,8 @@ export class BaseMode implements Mode {
   CRUSH_FOLD_OFFSET: number = 10;
   scale: number = 1;
 
+  LONG_PRESS_DURATION = 500;
+
   constructor() {
     const state = graphStore.getState();
     this.LINE_STROKE_WIDTH = state.LINE_STROKE_WIDTH;
@@ -37,6 +42,66 @@ export class BaseMode implements Mode {
   }
 
   ComponentUI = BaseModeUI;
+
+  createLengthAnno({
+    node,
+    to,
+    g,
+    scale = graphStore.getState().scale,
+    textSize = this.ANNO_TEXT_SIZE,
+    scaleOffset = this.ANNO_CHANGE_SCALE_OFFSET,
+    textPrefix = '',
+    bgColor,
+    bgColorSec,
+    showTapered = true,
+  }: LengthAnnoType) {
+    return createLengthAnno(
+      node,
+      to,
+      g,
+      scale,
+      textSize,
+      scaleOffset,
+      bgColor,
+      bgColorSec,
+      showTapered,
+      textPrefix,
+    );
+  }
+
+  createAngleAnno({
+    g,
+    prevNode,
+    node,
+    nextNode,
+    scale = graphStore.getState().scale,
+    textSize = this.ANNO_TEXT_SIZE,
+    scaleOffset = this.ANNO_CHANGE_SCALE_OFFSET,
+    bgColor,
+    bgColorSec,
+  }: AngleAnnoType) {
+    const { angle, startAngle, endAngle } = computeAngle(prevNode, node, nextNode);
+
+    const arc = drawAngleArc(g, node, startAngle, endAngle, 18, scale);
+    const label = drawAngleText(
+      g,
+      node,
+      startAngle,
+      endAngle,
+      angle,
+      40,
+      textSize,
+      scale,
+      scaleOffset,
+      bgColor,
+      bgColorSec,
+    );
+
+    return {
+      arc: arc,
+      label: label,
+    };
+  }
 
   annotaionObjects(nodes: Map<string, Node>, g: G) {
     if (!this.drawAnnotations) return;
@@ -54,9 +119,28 @@ export class BaseMode implements Mode {
     }
   }
 
-  edgeObject(g: G, node: Node, to: Node, render?: () => void, extraLayer?: G) {
+  edgeObject(
+    g: G,
+    node: Node,
+    to: Node,
+    // eslint-disable-next-line
+    render?: () => void,
+    // eslint-disable-next-line
+    extraLayer?: G,
+  ): G | undefined | void {
     const { data: pathD } = this.createLineORFoldPathData(node, to);
-    this.createPath(g, pathD);
+
+    const lineG = g.group();
+
+    this.createPath(lineG, pathD);
+
+    this.createLengthAnno({
+      node,
+      to,
+      g: lineG,
+    });
+
+    return lineG;
   }
 
   createNode(

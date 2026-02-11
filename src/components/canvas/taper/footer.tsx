@@ -8,6 +8,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { graphStore } from '@/lib/flashing/store/store';
 import { Engine } from '@/lib/flashing/engine/engine';
 import { TaperModeComponentProps } from '.';
+import { useGraphStore } from '@/lib/flashing/store/useStore';
+import { inchToMm, mmToInch } from '@/lib/flashing/engine/helpers/geometry';
 
 export default function ResizeModeFooter({
   componentProps,
@@ -18,23 +20,39 @@ export default function ResizeModeFooter({
   setComponentProps: Dispatch<SetStateAction<TaperModeComponentProps>>;
   engine: RefObject<Engine>;
 }) {
+  const unit = useGraphStore((s) => s.unit);
+
   const [inputVal, setInputVal] = useState<string | null>(null);
 
   useEffect(() => {
-    setInputVal(componentProps.value);
-  }, [componentProps]);
+    if (!componentProps.value) return;
+
+    const unit = graphStore.getState().unit;
+    const val = unit === 'mm' ? componentProps.value : mmToInch(componentProps.value).toFixed(2);
+    // eslint-disable-next-line
+    setInputVal(val);
+  }, [componentProps.value, unit]);
 
   const onSubmitValue = () => {
     const val = Number(inputVal ?? 0);
-
     if (!val) return;
 
-    if (val < 8) return;
+    const unit = graphStore.getState().unit;
+
+    if (unit === 'mm' && val < 8) return;
+    if (unit === 'in' && val < 0.3) return;
 
     if (!componentProps.onApplyValue) return;
 
-    componentProps.onApplyValue(val);
+    const finVal = unit === 'mm' ? val : inchToMm(val);
+
+    componentProps.onApplyValue(finVal);
     engine.current?.renderer.centerRenderedContentAnimated(40, 300);
+  };
+
+  const onUnitToggle = () => {
+    const state = graphStore.getState();
+    state.setUnit(state.unit === 'mm' ? 'in' : 'mm');
   };
 
   return (
@@ -56,7 +74,7 @@ export default function ResizeModeFooter({
               <RulerDimensionLine />
             </InputGroupAddon>
             <InputGroupAddon align="inline-end">
-              <Badge className="px-1 rounded-sm pl-2">{graphStore.getState().unit}</Badge>
+              <Badge className="px-1 rounded-sm pl-2">{unit}</Badge>
             </InputGroupAddon>
           </InputGroup>
 
@@ -82,6 +100,8 @@ export default function ResizeModeFooter({
         onPrev={componentProps.onSelectPrev}
         canNext={componentProps.canSelectNext}
         canPrev={componentProps.canSelectPrev}
+        unit={unit}
+        onUnitToggle={onUnitToggle}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { G, PathCommand } from '@svgdotjs/svg.js';
+import { G } from '@svgdotjs/svg.js';
 import { BaseMode } from './base';
 import { Node } from '@/lib/flashing/types/types';
 import { graphStore } from '@/lib/flashing/store/store';
@@ -152,7 +152,7 @@ export class TaperMode extends BaseMode {
     const state = graphStore.getState();
     const nodes = state.data?.nodes;
 
-    if (!s || typeof s !== 'number' || s < 20) return;
+    if (!s || typeof s !== 'number') return;
     if (!state || !nodes) return;
 
     if (!this.historyStarted) {
@@ -239,7 +239,7 @@ export class TaperMode extends BaseMode {
     });
   }
 
-  initMode(nodes: Map<string, Node>, g: G) {
+  initMode(nodes: Map<string, Node>) {
     this.createBSideNodes(nodes);
     this.path3DOffset = (getLongestLine(nodes)?.length ?? 100) * 1.2;
   }
@@ -372,8 +372,6 @@ export class TaperMode extends BaseMode {
 
     const bPathD = this.createLineORFoldPathData(node, to).data;
     const shouldSelB = this.sLine?.object.node_id === node.node_id && this.sLine.isBSide;
-
-    console.log(shouldSelB);
 
     const fLGroup = g
       .group()

@@ -1,22 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group';
-import { graphStore } from '@/lib/flashing/store/store';
 import { ArrowRight, Redo, Settings, Undo, X } from 'lucide-react';
 import SettingsDrawer from './settings/drawer';
+import { ReactNode } from 'react';
+import { useGraphStore } from '@/lib/flashing/store/useStore';
 
 export default function CanvasHeader({
-  props,
+  title = 'Canvas',
+  onUndo,
+  onRedo,
 }: {
-  props:
-    | {
-        activeMode: string;
-        canUndo: boolean;
-        canRedo: boolean;
-        nodesSize: number;
-      }
-    // eslint-disable-next-line
-    | any;
+  title?: string | ReactNode;
+  onUndo: () => void;
+  onRedo: () => void;
 }) {
+  const canUndo = useGraphStore((s) => s.history.length > 0);
+  const canRedo = useGraphStore((s) => s.future.length > 0);
+
   return (
     <>
       <div className="z-5 fixed top-0 w-full">
@@ -24,7 +24,9 @@ export default function CanvasHeader({
           <Button variant="ghost" size="icon-lg">
             <X />
           </Button>
-          <p className="text-lg font-semibold flex gap-2 items-center">Canvas</p>
+          <p className="absolute left-1/2 -translate-x-1/2 text-md font-semibold gap-2 flex items-center rounded-md">
+            {title}
+          </p>
           <Button variant="ghost" size="icon-lg">
             <ArrowRight />
           </Button>
@@ -32,21 +34,11 @@ export default function CanvasHeader({
       </div>
 
       <ButtonGroup className="fixed top-16.5 left-4 bg-background shadow-md rounded-lg">
-        <Button
-          variant="ghost"
-          size="icon-lg"
-          disabled={!props.canUndo}
-          onClick={graphStore.getState().undo}
-        >
+        <Button variant="ghost" size="icon-lg" disabled={!canUndo} onClick={onUndo}>
           <Undo />
         </Button>
         <ButtonGroupSeparator />
-        <Button
-          variant="ghost"
-          size="icon-lg"
-          disabled={!props.canRedo}
-          onClick={graphStore.getState().redo}
-        >
+        <Button variant="ghost" size="icon-lg" disabled={!canRedo} onClick={onRedo}>
           <Redo />
         </Button>
       </ButtonGroup>

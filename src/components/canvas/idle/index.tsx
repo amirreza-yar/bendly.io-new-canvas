@@ -1,12 +1,10 @@
 import { motion } from 'framer-motion';
-import { ReactNode, RefObject, useEffect, useState } from 'react';
+import CanvasHeader from '@/components/canvas/base/canvas-header';
+import { ReactNode, RefObject, useEffect, useMemo, useState } from 'react';
 import { Engine } from '@/lib/flashing/engine/engine';
-import CanvasHeader from '../base/canvas-header';
-import CanvasSide from '../base/canvas-side';
-import CanvasNav from '../base/canvas-nav';
-import { BothEndsBlockedAlertDialog } from './both-ends-bloacked-alert';
-import { RemoveFoldAlertDialog } from './remove-fold-alert';
+import { Button } from '@/components/ui/button';
 import { Drawing, Remove, Resize } from '@/components/icons';
+import CanvasSide from '../base/canvas-side';
 import { graphStore } from '@/lib/flashing/store/store';
 import {
   DropdownMenu,
@@ -16,12 +14,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
 
-export type DrawModeComponentProps = {
-  showCantDrawAlert: boolean;
-  showRemoveFoldAlert: boolean;
-  onRemoveFold: () => void;
+export type IdleModeComponentProps = {
   openLineDropdown: boolean;
   dropdownPosition: { x: number; y: number };
   onLineDeselect: () => void;
@@ -29,11 +23,8 @@ export type DrawModeComponentProps = {
   lineID: string | null;
 };
 
-export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): ReactNode {
-  const [modeProps, setModeProps] = useState<DrawModeComponentProps>({
-    showCantDrawAlert: false,
-    showRemoveFoldAlert: false,
-    onRemoveFold: () => {},
+export default function IdleModeUI({ engine }: { engine: RefObject<Engine> }): ReactNode {
+  const [modeProps, setModeProps] = useState<IdleModeComponentProps>({
     openLineDropdown: false,
     dropdownPosition: { x: 100, y: 100 },
     onLineDeselect: () => {},
@@ -43,7 +34,7 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
 
   useEffect(() => {
     engine.current?.activeMode?.onUIReady?.(setModeProps);
-    // engine.current.renderer.centerRenderedContentAnimated(120, 80, );
+    engine.current.renderer.centerRenderedContentAnimated();
   }, [engine]);
 
   const onUndo = () => {
@@ -111,17 +102,6 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <BothEndsBlockedAlertDialog
-        openAlert={modeProps.showCantDrawAlert}
-        setOpenAlert={setModeProps}
-      />
-
-      <RemoveFoldAlertDialog
-        openAlert={modeProps.showRemoveFoldAlert}
-        setOpenAlert={setModeProps}
-        onAction={modeProps.onRemoveFold}
-      />
-
       <motion.header
         initial="initial"
         animate="animate"
@@ -133,16 +113,7 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
       >
-        <CanvasHeader
-          onUndo={onUndo}
-          onRedo={onRedo}
-          title={
-            <>
-              <Drawing className="size-5" />
-              Draw
-            </>
-          }
-        />
+        <CanvasHeader onUndo={onUndo} onRedo={onRedo} />
       </motion.header>
 
       <motion.div
@@ -155,7 +126,7 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
           exit: { x: 12, opacity: 0 },
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
-        className="fixed z-5 right-4 bottom-22 flex flex-col gap-3 items-center"
+        className="fixed z-5 right-6 bottom-8 flex flex-col gap-3 items-center"
       >
         <CanvasSide engine={engine} />
       </motion.div>
@@ -165,14 +136,21 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
         animate="animate"
         exit="exit"
         variants={{
-          initial: { y: 12, opacity: 0 },
-          animate: { y: 0, opacity: 1 },
-          exit: { y: 12, opacity: 0 },
+          initial: { x: -12, opacity: 0 },
+          animate: { x: 0, opacity: 1 },
+          exit: { x: -12, opacity: 0 },
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
-        className="z-5 fixed bottom-4 w-full"
+        className="fixed z-5 left-6 bottom-8 flex flex-col gap-3 items-center"
       >
-        <CanvasNav engine={engine} />
+        <Button
+          className="shadow-md bg-background"
+          variant="ghost"
+          size="icon-lg"
+          onClick={() => engine.current.setMode('draw')}
+        >
+          <Drawing />
+        </Button>
       </motion.div>
     </>
   );

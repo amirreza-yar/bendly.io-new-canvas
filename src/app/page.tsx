@@ -6,8 +6,25 @@ import { graphStore } from '@/lib/flashing/store/store';
 import { useGraphStore } from '@/lib/flashing/store/useStore';
 import { Node } from '@/lib/flashing/types/types';
 import ModeComponent from '@/lib/flashing/components/mode';
-import { PolygonAlertDialog } from '@/components/canvas/base/alert';
+import { PolygonAlertDialog } from '@/components/canvas/base/polygon-alert';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import {
+  CanvasDropdownGroup,
+  CanvasDropdownItem,
+  CanvasDropdownRoot,
+} from '@/components/canvas/base/line-dropdown';
+import { Drawing } from '@/components/icons';
 
+// eslint-disable-next-line
 const demoData: Node[] = [
   {
     node_id: 'gwomd9',
@@ -55,6 +72,8 @@ export default function GraphPage() {
   useEffect(() => {
     const prevent = (e: Event) => e.preventDefault();
 
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
     document.addEventListener('gesturestart', prevent);
     document.addEventListener('gesturechange', prevent);
     document.addEventListener('gestureend', prevent);
@@ -79,8 +98,8 @@ export default function GraphPage() {
     // initialize some data
     graphStore.setState({
       data: {
-        nodes: new Map<string, Node>(demoData.map((n: Node) => [n.node_id, n])),
-        // nodes: new Map(),
+        // nodes: new Map<string, Node>(demoData.map((n: Node) => [n.node_id, n])),
+        nodes: new Map(),
         startCrushFold: false,
         endCrushFold: false,
         crushFoldDir: false,

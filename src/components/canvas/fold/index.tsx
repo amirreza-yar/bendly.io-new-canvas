@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import FoldModeHeader from './header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftRight, Crosshair } from 'lucide-react';
-import { graphStore } from '@/lib/flashing/store/store';
 import { useGraphStore } from '@/lib/flashing/store/useStore';
 
 export type FoldModeComponentProps = {

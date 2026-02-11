@@ -9,6 +9,8 @@ export default function VirtualKeyboard({
   onPrev,
   canNext,
   canPrev,
+  unit,
+  onUnitToggle,
 }: {
   setInputValue: Dispatch<SetStateAction<string | null>>;
   onSubmitValue: () => void;
@@ -16,6 +18,8 @@ export default function VirtualKeyboard({
   onPrev?: () => void;
   canNext: boolean;
   canPrev: boolean;
+  unit: 'mm' | 'in';
+  onUnitToggle: () => void;
 }) {
   const append = (char: string) => {
     setInputValue((prev) => {
@@ -151,8 +155,8 @@ export default function VirtualKeyboard({
         >
           0
         </Button>
-        <Button size="lg" variant="outline" className="shadow-sm text-md" disabled>
-          mm
+        <Button size="lg" variant="outline" className="shadow-sm text-md" onClick={onUnitToggle}>
+          {unit}
         </Button>
         <Button size="lg" className="shadow-sm text-md" onClick={onSubmitValue}>
           <Check />

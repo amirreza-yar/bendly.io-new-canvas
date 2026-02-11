@@ -1,4 +1,4 @@
-import { graphStore, StoreState } from '@/lib/flashing/store/store';
+import { graphStore } from '@/lib/flashing/store/store';
 import { Node } from '@/lib/flashing/types/types';
 import { calculateLineAngle, createCrushFoldCoords } from './geometry';
 

@@ -157,8 +157,6 @@ export class RemoveMode extends BaseMode {
   }
 
   edgeObject(g: G, node: Node, to: Node) {
-    const state = graphStore.getState();
-
     const pathD = this.createLineORFoldPathData(node, to).data;
     const isLineSelected = this.selectedLines?.includes(`${node.node_id}-${to.node_id}`);
 

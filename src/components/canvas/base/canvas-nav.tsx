@@ -26,50 +26,40 @@ import { ButtonGroup } from '@/components/ui/button-group';
 import { RefObject } from 'react';
 import { Engine } from '@/lib/flashing/engine/engine';
 import { Button } from '@/components/ui/button';
+import { useGraphStore } from '@/lib/flashing/store/useStore';
 
-export default function CanvasNav({
-  engine,
-  props,
-}: {
-  engine: RefObject<Engine>;
-  props:
-    | {
-        activeMode: string;
-        canUndo: boolean;
-        canRedo: boolean;
-        nodesSize: number;
-      }
-    // eslint-disable-next-line
-    | any;
-}) {
+export default function CanvasNav({ engine }: { engine: RefObject<Engine> }) {
+  const activeMode = useGraphStore((s) => s.activeMode);
+  const nodesSize = useGraphStore((s) => s.data?.nodes.size);
+
   const modes = [
     {
       name: 'resize',
       title: 'Adjust',
       icon: Resize,
       iconBold: ResizeBold,
-      activeCondition: (props.nodesSize ?? 0) > 1,
+      activeCondition: (nodesSize ?? 0) > 1,
     },
     {
       name: 'modiy',
       title: 'Modify',
       icon: Modify,
       iconBold: ModifyBold,
-      activeCondition: (props.nodesSize ?? 0) > 1,
+      activeCondition: (nodesSize ?? 0) > 1,
       subModes: [
         {
           name: 'move',
           title: 'Move',
           icon: Move,
           iconBold: MoveBold,
-          activeCondition: (props.nodesSize ?? 0) > 1,
+          activeCondition: (nodesSize ?? 0) > 1,
         },
         {
           name: 'remove',
           title: 'Remove',
           icon: Earaser,
           iconBold: EaraserBold,
-          activeCondition: (props.nodesSize ?? 0) > 1,
+          activeCondition: (nodesSize ?? 0) > 1,
         },
       ],
     },
@@ -85,14 +75,14 @@ export default function CanvasNav({
       title: 'Taper',
       icon: Taper,
       iconBold: TaperBold,
-      activeCondition: (props.nodesSize ?? 0) > 1,
+      activeCondition: (nodesSize ?? 0) > 1,
     },
     {
       name: 'fold',
       title: 'Fold',
       icon: CrushFold,
       iconBold: CrushFoldBold,
-      activeCondition: (props.nodesSize ?? 0) > 1,
+      activeCondition: (nodesSize ?? 0) > 1,
     },
   ];
 
@@ -134,11 +124,11 @@ export default function CanvasNav({
                         variant="ghost"
                         className={cn(
                           'flex-col h-15 text-xs min-w-15 max-w-15 gap-1',
-                          props.activeMode === subMode.name &&
+                          activeMode === subMode.name &&
                             'text-primary hover:text-primary/90 font-semibold',
                         )}
                         onClick={() => {
-                          if (props.activeMode === subMode.name) {
+                          if (activeMode === subMode.name) {
                             engine.current?.setMode('idle');
                             return;
                           }
@@ -146,7 +136,7 @@ export default function CanvasNav({
                         }}
                         disabled={!subMode.activeCondition}
                       >
-                        {props.activeMode === subMode.name ? (
+                        {activeMode === subMode.name ? (
                           <subMode.iconBold className="size-6" />
                         ) : (
                           <subMode.icon className="size-6" />
@@ -171,7 +161,7 @@ export default function CanvasNav({
               isModeActive && 'text-primary hover:text-primary/90 font-semibold',
             )}
             onClick={() => {
-              if (props.activeMode === mode.name) {
+              if (activeMode === mode.name) {
                 engine.current?.setMode('idle');
                 return;
               }

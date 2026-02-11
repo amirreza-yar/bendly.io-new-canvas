@@ -1,9 +1,9 @@
-import { CircleQuestion } from '@/components/icons';
+import { CircleQuestion, Resize } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
 import { Check, X } from 'lucide-react';
 import { ResizeModeComponentProps } from '.';
-import { CancelAlertDialog } from './alert';
+import { CancelAlertDialog } from '@/components/canvas/base/cancel-alert';
 
 export default function ResizeModeHeader({
   componentProps,
@@ -33,6 +33,11 @@ export default function ResizeModeHeader({
           Apply
           <Check />
         </Button>
+
+        <p className="absolute left-1/2 -translate-x-1/2 text-md font-semibold gap-2 flex items-center rounded-md">
+          <Resize className="size-5" />
+          Adjust
+        </p>
       </div>
       <div className="px-4 pt-2 max-w-100 mx-auto">
         <Item className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-md">

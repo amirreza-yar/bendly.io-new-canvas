@@ -40,6 +40,11 @@ export class Engine {
 
   constructor(container: HTMLElement) {
     this.container = container;
+
+    this.container.addEventListener('contextmenu', (e) => {
+      e.preventDefault(); // disables the browser's right-click menu
+    });
+
     // ensure the container doesn't let the browser steal gestures
     this.container.style.touchAction = this.container.style.touchAction || 'none';
 
@@ -142,7 +147,9 @@ export class Engine {
     this.lastRect = rect;
   }
 
-  setMode(mode: Mode | string) {
+  setMode(mode: Mode | string, props?: { sLine?: string }) {
+    const sLine = props?.sLine;
+
     if (typeof mode === 'string') {
       let modeInstance: Mode;
 
@@ -160,7 +167,7 @@ export class Engine {
           modeInstance = new RemoveMode();
           break;
         case 'resize':
-          modeInstance = new ResizeMode();
+          modeInstance = new ResizeMode({ sLine: sLine });
           break;
         case 'fold':
           modeInstance = new FoldMode();

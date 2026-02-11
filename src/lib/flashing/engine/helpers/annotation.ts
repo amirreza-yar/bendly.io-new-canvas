@@ -1,10 +1,16 @@
 import { G, Polyline } from '@svgdotjs/svg.js';
 import { Node } from '@/lib/flashing/types/types';
-import { calculateLength, computeAngle } from './geometry';
+import { calculateLength, computeAngle, mmToInch } from './geometry';
+import { graphStore } from '../../store/store';
 
 type Point = { x: number; y: number };
 
-function lengthAnnotationProps(n1: Node, n2: Node, offset: number = 20, dir: boolean = true) {
+export function lengthAnnotationProps(
+  n1: Node,
+  n2: Node,
+  offset: number = 20,
+  dir: boolean = true,
+) {
   const dx = (n2.x - n1.x) * (dir ? 1 : -1);
   const dy = (n2.y - n1.y) * (dir ? 1 : -1);
 
@@ -58,7 +64,7 @@ export function createLengthAnno(
   if (angle > 90 || angle < -90) {
     angle += 180;
   }
-  const lineLenght = calculateLength(node, to);
+  const lineLength = calculateLength(node, to);
   const label = g.group();
 
   const isTapered = !!node.next_line_bside_length ? true : false;
@@ -66,8 +72,12 @@ export function createLengthAnno(
   label.translate(midX!, midY!);
   label.rotate(angle);
 
+  const unit = graphStore.getState().unit;
+
+  const lineLengthToShow = unit === 'mm' ? lineLength.toFixed(0) : mmToInch(lineLength).toFixed(2);
+
   const text = label
-    .text(`${textPrefix}${showTapered && isTapered ? 'N-' : ''}${lineLenght.toFixed(0)}`)
+    .text(`${textPrefix}${showTapered && isTapered ? 'N-' : ''}${lineLengthToShow}`)
     .font({
       size: Math.max(textSize * 0.3, Math.min(textSize / scale, textSize * 1.5)),
       family: 'sans-serif',

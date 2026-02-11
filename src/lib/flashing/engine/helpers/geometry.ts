@@ -109,6 +109,22 @@ export function calculateLength(node1: Node, node2: Node): number {
   return Math.round(Math.hypot(node1.x - node2.x, node1.y - node2.y) * 10) / 10;
 }
 
+export function mmToInch(mm: string | number) {
+  if (typeof mm === 'number') {
+    return mm / 25.4;
+  } else {
+    return Number(mm) / 25.4;
+  }
+}
+
+export function inchToMm(inch: string | number) {
+  if (typeof inch === 'number') {
+    return inch * 25.4;
+  } else {
+    return Number(inch) * 25.4;
+  }
+}
+
 export function calculateLineAngle(node1: Node, node2: Node) {
   const dx = node2.x - node1.x;
   const dy = node2.y - node1.y;

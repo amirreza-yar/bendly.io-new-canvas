@@ -36,7 +36,7 @@ export interface Mode {
 
   initMode?(nodes: Map<string, Node>, g: G): void;
   nodeObject(g: G, node?: Node, render?: () => void): void;
-  edgeObject(g: G, node: Node, to: Node, render?: () => void, extraLayer?: G): void;
+  edgeObject(g: G, node: Node, to: Node, render?: () => void, extraLayer?: G): void | G;
   annotaionObjects?(nodes: Map<string, Node>, g: G): void;
 
   createNode(g: G, node: Node, nodeStyle?: { radius?: number; fill?: string }): Circle;
@@ -56,3 +56,28 @@ export interface Mode {
 }
 
 export type ScreenToWorld = (clientX: number, clientY: number) => { x: number; y: number };
+
+export type LengthAnnoType = {
+  node: Node;
+  to: Node;
+  g: G;
+  scale?: number;
+  textSize?: number;
+  scaleOffset?: number;
+  showTapered?: boolean;
+  textPrefix?: string;
+  bgColor?: string;
+  bgColorSec?: string;
+};
+
+export type AngleAnnoType = {
+  g: G;
+  prevNode: Node;
+  node: Node;
+  nextNode: Node;
+  scale?: number;
+  textSize?: number;
+  scaleOffset?: number;
+  bgColor?: string;
+  bgColorSec?: string;
+};

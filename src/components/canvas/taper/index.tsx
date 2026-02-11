@@ -4,6 +4,8 @@ import { RefObject, useEffect, useState } from 'react';
 import ResizeModeFooter from './footer';
 import { motion } from 'framer-motion';
 import ResizeModeHeader from './header';
+import { Button } from '@/components/ui/button';
+import { Crosshair } from '@/components/icons';
 
 export type TaperModeComponentProps = {
   selected: boolean;
@@ -92,6 +94,36 @@ export function TaperModeUI({ engine }: { engine: RefObject<Engine> }) {
         transition={{ duration: 0.1, ease: 'easeOut' }}
       >
         <ResizeModeHeader componentProps={modeProps} onSave={onSave} onCancel={onCancel} />
+      </motion.header>
+
+      <motion.header
+        initial="closed"
+        animate={modeProps.drawerOpen ? 'closed' : 'open'}
+        exit="exit"
+        variants={{
+          closed: {
+            x: 12,
+            opacity: 0,
+            pointerEvents: 'none',
+            visibility: 'hidden',
+          },
+          open: {
+            x: 0,
+            opacity: 1,
+            pointerEvents: 'auto',
+            visibility: 'visible',
+          },
+        }}
+        transition={{ duration: 0.1, ease: 'easeOut' }}
+      >
+        <Button
+          className="fixed bottom-8 right-6 shadow-md bg-background"
+          variant="ghost"
+          size="icon-lg"
+          onClick={() => engine.current.renderer.centerRenderedContentAnimated(160, 30)}
+        >
+          <Crosshair />
+        </Button>
       </motion.header>
 
       <motion.div

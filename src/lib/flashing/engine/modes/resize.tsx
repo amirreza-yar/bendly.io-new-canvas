@@ -21,14 +21,26 @@ export class ResizeMode extends BaseMode {
   icon = Resize;
   iconBold = ResizeBold;
   sLine: string | null = null;
+  intialSLine: Node | null = null;
   sNode: string | null = null;
   historyStarted: boolean = false;
 
   ComponentUI = ResizeModeUI;
   setModeProps: Dispatch<SetStateAction<ResizeModeComponentProps>> | undefined;
 
-  constructor() {
+  constructor({ sLine }: { sLine?: string | Node }) {
     super();
+
+    if (sLine && typeof sLine === 'string') {
+      const nodes = graphStore.getState().data?.nodes;
+      const node = nodes?.get(sLine);
+      const to = nodes?.get(node?.next_node_id ?? '');
+      if (!node || !to) return;
+
+      this.intialSLine = node;
+
+      // console.log(sLine, this.setModeProps);
+    }
   }
 
   onUIReady(setModeProps: Dispatch<SetStateAction<ResizeModeComponentProps>>) {
@@ -43,6 +55,15 @@ export class ResizeMode extends BaseMode {
       onSelectNext: this.onSelectNext.bind(this),
       onSelectPrev: this.onSelectPrev.bind(this),
     }));
+
+    if (this.intialSLine) {
+      const nodes = graphStore.getState().data?.nodes;
+      const node = this.intialSLine;
+      const to = nodes?.get(node.next_node_id ?? '');
+      if (!node || !to) return;
+
+      this.onLinePointerDown(node, to, false);
+    }
   }
 
   onDeselect() {
@@ -174,11 +195,10 @@ export class ResizeMode extends BaseMode {
 
   applyValue(value: string | number) {
     const s = Number(value);
-    console.log(s);
     const state = graphStore.getState();
     const nodes = state.data?.nodes;
 
-    if (!s || typeof s !== 'number' || s < 20) return;
+    if (!s || typeof s !== 'number') return;
     if (!state || !nodes) return;
 
     if (!this.historyStarted) {
