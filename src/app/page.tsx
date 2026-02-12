@@ -118,10 +118,10 @@ export default function GraphPage() {
       ) : (
         <>
           <ModeComponent engine={engine} />
-          {/* <SelectMaterialDialog
+          <SelectMaterialDialog
             openDialog={openMaterialDialog}
             setOpenDialog={setOpenMaterialDialog}
-          /> */}
+          />
           <PolygonAlertDialog openPolygonAlert={openPolygonAlert} />
         </>
       )}
