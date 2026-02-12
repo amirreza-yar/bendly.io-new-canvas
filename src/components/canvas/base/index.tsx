@@ -30,7 +30,7 @@ export default function BaseModeUI({ engine }: { engine: RefObject<Engine> }): R
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
       >
-        <CanvasHeader onUndo={onUndo} onRedo={onRedo} />
+        <CanvasHeader onUndo={onUndo} onRedo={onRedo} onNext={() => {}} />
       </motion.header>
 
       <motion.div
