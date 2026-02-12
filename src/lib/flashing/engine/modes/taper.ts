@@ -2,7 +2,6 @@ import { G } from '@svgdotjs/svg.js';
 import { BaseMode } from './base';
 import { Node } from '@/lib/flashing/types/types';
 import { graphStore } from '@/lib/flashing/store/store';
-import { createLengthAnno } from '@/lib/flashing/engine/helpers/annotation';
 import { calculateLength, getChangeLengthDiff, getLongestLine } from '../helpers/geometry';
 import { TaperModeComponentProps, TaperModeUI } from '@/components/canvas/taper';
 import { Dispatch, SetStateAction } from 'react';
@@ -345,26 +344,23 @@ export class TaperMode extends BaseMode {
       width: this.getFlexStrokeWidth() * 10,
     });
 
-    createLengthAnno(
+    this.createLengthAnno({
       node,
       to,
-      nLGroup,
-      graphStore.getState().scale * 1.2,
-      this.ANNO_TEXT_SIZE,
-      this.ANNO_CHANGE_SCALE_OFFSET,
-      shouldSelA
+      g: nLGroup,
+      bgColor: shouldSelA
         ? 'var(--anno-length-selected)'
         : isTaperd
           ? 'var(--anno-length-tapered)'
           : undefined,
-      shouldSelA
+      bgColorSec: shouldSelA
         ? 'var(--anno-length-selected)'
         : isTaperd
           ? 'var(--anno-length-tapered-muted)'
           : undefined,
-      false,
-      'N-',
-    );
+      textPrefix: 'N-',
+      showTapered: false,
+    });
   }
 
   private createBGroup(g: G, node: Node, to: Node, isTaperd: boolean) {
@@ -383,7 +379,7 @@ export class TaperMode extends BaseMode {
       });
 
     this.createPath(fLGroup, bPathD, {
-      color: shouldSelB ? 'var(--primary)' : undefined,
+      color: shouldSelB ? 'var(--primary)' : 'var(--base-drawing-secondary)',
       dasharray: shouldSelB ? `${Math.round(this.getFlexStrokeWidth() * 3)}` : undefined,
     });
 
@@ -399,26 +395,23 @@ export class TaperMode extends BaseMode {
       width: this.getFlexStrokeWidth() * 10,
     });
 
-    createLengthAnno(
+    this.createLengthAnno({
       node,
       to,
-      fLGroup,
-      graphStore.getState().scale * 1.2,
-      this.ANNO_TEXT_SIZE,
-      this.ANNO_CHANGE_SCALE_OFFSET,
-      shouldSelB
+      g: fLGroup,
+      bgColor: shouldSelB
         ? 'var(--anno-length-selected)'
         : isTaperd
           ? 'var(--anno-length-tapered)'
           : 'var(--anno-length-secondary)',
-      shouldSelB
+      bgColorSec: shouldSelB
         ? 'var(--anno-length-selected)'
         : isTaperd
           ? 'var(--anno-length-tapered-muted)'
           : 'var(--anno-length-secondary-muted)',
-      false,
-      'F-',
-    );
+      textPrefix: 'F-',
+      showTapered: false,
+    });
   }
 
   edgeObject(g: G, node: Node, to: Node, _: () => void, extraLayer: G) {

@@ -48,6 +48,33 @@ export function isAngleInverted(pNode: Node, baseNode: Node, nNode: Node): boole
   return δ >= 0 ? true : false;
 }
 
+export function sortNodes(nodesMap: Map<string, Node>): Node[] {
+  if (!nodesMap.size) return [];
+
+  // 1️⃣ find head (no prev)
+  const head = Array.from(nodesMap.values()).find((n) => !n.prev_node_id);
+
+  if (!head) {
+    console.warn('No head found. Possibly broken chain.');
+    return [];
+  }
+
+  // 2️⃣ follow next pointers
+  const result: Node[] = [];
+
+  let current: Node | undefined = head;
+
+  while (current) {
+    result.push(current);
+
+    if (!current.next_node_id) break;
+
+    current = nodesMap.get(current.next_node_id);
+  }
+
+  return result;
+}
+
 export function calculateAngle(pNode: Node, baseNode: Node, nNode: Node): number {
   const ax = pNode.x,
     ay = pNode.y,
@@ -248,11 +275,11 @@ export function vec(a: Point, b: Point) {
   return { x: b.x - a.x, y: b.y - a.y };
 }
 
-export function len(v: { x: number; y: number }) {
+export function len(v: Point) {
   return Math.hypot(v.x, v.y);
 }
 
-export function norm(v: { x: number; y: number }) {
+export function norm(v: Point) {
   const l = len(v) || 1;
   return { x: v.x / l, y: v.y / l };
 }

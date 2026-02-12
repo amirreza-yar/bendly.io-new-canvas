@@ -2,6 +2,15 @@ import { Circle, G, Path, PathCommand, StrokeData } from '@svgdotjs/svg.js';
 import { SvgRenderer } from '../engine/renderer';
 import { ReactNode } from 'react';
 
+export type Material = {
+  mat_id: number;
+  mat_name: string;
+  type: 'color' | 'thickness';
+  id: number;
+  label: string;
+  value: string | number;
+};
+
 export type Point = { x: number; y: number };
 
 export type Node = {

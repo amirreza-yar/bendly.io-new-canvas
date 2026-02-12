@@ -207,7 +207,8 @@ export class BaseMode implements Mode {
     const width = strokeStyle?.width ?? this.getFlexStrokeWidth(),
       color = strokeStyle?.color ?? 'var(--base-drawing)',
       linecap = strokeStyle?.linecap ?? 'round',
-      dasharray = strokeStyle?.dasharray;
+      dasharray = strokeStyle?.dasharray,
+      linejoin = strokeStyle?.linejoin ?? 'round';
 
     return g
       .path(D)
@@ -216,6 +217,7 @@ export class BaseMode implements Mode {
         color: color,
         linecap: linecap,
         dasharray: dasharray,
+        linejoin: linejoin,
       })
       .fill('#00000000');
   }

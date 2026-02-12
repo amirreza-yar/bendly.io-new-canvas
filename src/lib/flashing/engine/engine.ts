@@ -8,6 +8,7 @@ import { RemoveMode } from './modes/remove';
 import { ResizeMode } from './modes/resize';
 import { FoldMode } from './modes/fold';
 import { TaperMode } from './modes/taper';
+import ColorSideMode from './modes/color-side';
 
 export class Engine {
   container: HTMLElement;
@@ -174,6 +175,9 @@ export class Engine {
           break;
         case 'taper':
           modeInstance = new TaperMode();
+          break;
+        case 'color-side':
+          modeInstance = new ColorSideMode();
           break;
         default:
           throw new Error(`Unknown mode: ${mode}`);

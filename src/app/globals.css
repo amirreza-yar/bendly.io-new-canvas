@@ -27,6 +27,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -48,6 +49,8 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.06), 0 2px 16px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 -8px 6px -3px rgb(0 0 0 / 0.05), 0 10px 15px -1px rgb(0 0 0 / 0.1);
+
+  --breakpoint-xs: 30rem;
 }
 
 :root {
@@ -60,7 +63,9 @@
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.58 0.22 27);
+  --success: oklch(54.491% 0.14894 137.746);
   --input: oklch(0.922 0 0);
+
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -93,8 +98,11 @@
   --base-drawing: oklch(0.21 0.006 285.885);
   --base-drawing-foreground: oklch(0.21 0.006 285.885);
 
-  --draw-pointer-foreground: oklch(54.342% 0.25245 267.504);
+  --base-drawing-secondary: oklch(65.097% 0.01923 285.806);
+  --base-drawing-secondary-foreground: oklch(0.21 0.006 285.885);
+
   --draw-pointer: oklch(54.342% 0.25245 267.504 / 0.267);
+  --draw-pointer-foreground: oklch(54.342% 0.25245 267.504);
 
   --move-pointer-foreground: oklch(59.459% 0.17932 146.481);
   --move-pointer: oklch(59.459% 0.17932 146.481 / 0.308);

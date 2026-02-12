@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, ArrowLeft, Delete, Check } from 'lucide-react';
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useRef } from 'react';
 
 export default function VirtualKeyboard({
   setInputValue,
@@ -36,6 +36,33 @@ export default function VirtualKeyboard({
 
       return current.length > 0 ? current.slice(0, -1) : null;
     });
+  };
+
+  const backspaceIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const backspaceDelayRef = useRef<NodeJS.Timeout | null>(null);
+
+  const backspaceStartPress = () => {
+    // immediate single press
+    backspace();
+
+    // wait 500ms before starting repeat
+    backspaceDelayRef.current = setTimeout(() => {
+      backspaceIntervalRef.current = setInterval(() => {
+        backspace();
+      }, 100);
+    }, 500);
+  };
+
+  const backspaceStopPress = () => {
+    if (backspaceDelayRef.current) {
+      clearTimeout(backspaceDelayRef.current);
+      backspaceDelayRef.current = null;
+    }
+
+    if (backspaceIntervalRef.current) {
+      clearInterval(backspaceIntervalRef.current);
+      backspaceIntervalRef.current = null;
+    }
   };
 
   return (
@@ -135,7 +162,10 @@ export default function VirtualKeyboard({
           variant="ghost"
           size="lg"
           className="bg-background shadow-sm text-xl"
-          onClick={backspace}
+          onPointerDown={backspaceStartPress}
+          onPointerUp={backspaceStopPress}
+          onPointerLeave={backspaceStopPress}
+          onPointerCancel={backspaceStopPress}
         >
           <Delete className="size-5" />
         </Button>

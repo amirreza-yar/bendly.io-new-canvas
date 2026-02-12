@@ -37,37 +37,47 @@ export class IdleMode extends BaseMode {
 
   removeLine() {
     const state = graphStore.getState();
-    const nodes = state.data?.nodes;
+    if (!state || !state.data?.nodes || !this.sFNode) return false;
 
-    if (!state || !nodes || !this.sFNode) return false;
     state.beginHistory();
 
-    const baseNode = this.sFNode;
-    const nodeToRemove = nodes.get(baseNode.next_node_id ?? '');
+    const nodes = new Map(state.data.nodes);
 
+    const baseNode = { ...nodes.get(this.sFNode.node_id)! };
+    nodes.set(baseNode.node_id, baseNode);
+
+    const nodeToRemove = nodes.get(baseNode.next_node_id ?? '');
     if (!nodeToRemove) return;
 
-    const offsetX = nodeToRemove?.x - baseNode?.x;
-    const offsetY = nodeToRemove?.y - baseNode?.y;
+    const offsetX = nodeToRemove.x - baseNode.x;
+    const offsetY = nodeToRemove.y - baseNode.y;
 
-    let tmpNode = nodes?.get(nodeToRemove.next_node_id ?? '');
+    let tmpNode = nodes.get(nodeToRemove.next_node_id ?? '');
 
-    nodes?.delete(nodeToRemove.node_id);
+    nodes.delete(nodeToRemove.node_id);
 
     baseNode.next_node_id = tmpNode?.node_id;
+    baseNode.next_line_bside_length = nodeToRemove?.next_line_bside_length;
 
-    if (!tmpNode) return;
-    tmpNode.prev_node_id = baseNode.node_id;
+    if (tmpNode) {
+      tmpNode = { ...tmpNode };
+      nodes.set(tmpNode.node_id, tmpNode);
+      tmpNode.prev_node_id = baseNode.node_id;
+    }
 
     if (baseNode.next_line_bside_length) {
       delete baseNode.next_line_bside_length;
     }
 
     while (tmpNode) {
-      tmpNode.x = tmpNode.x - offsetX;
-      tmpNode.y = tmpNode.y - offsetY;
+      tmpNode.x -= offsetX;
+      tmpNode.y -= offsetY;
 
-      tmpNode = nodes?.get(tmpNode.next_node_id ?? '');
+      const next = nodes.get(tmpNode.next_node_id ?? '');
+      if (!next) break;
+
+      tmpNode = { ...next };
+      nodes.set(tmpNode.node_id, tmpNode);
     }
 
     this.sFNode = null;

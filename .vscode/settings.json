@@ -1,5 +1,6 @@
 {
   "css.validate": false,
+  "insertnum.start": 1,
   "tailwindCSS.includeLanguages": {
     "css": "css"
   },

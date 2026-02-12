@@ -1,9 +1,12 @@
 // engine/store.ts
 import { createStore } from 'zustand/vanilla';
-import type { GraphData } from '../types/types';
+import type { GraphData, Material } from '../types/types';
 import { hasEdgeCrossing } from '../engine/helpers/engine';
 
 export type StoreState = {
+  material: Material | null;
+  setMaterial: (m: Material) => void;
+
   engineReady: boolean;
   setEngineReady: (e: boolean) => void;
 
@@ -76,6 +79,9 @@ let undoLock = false;
 let redoLock = false;
 
 export const graphStore = createStore<StoreState>((set, get) => ({
+  material: null,
+  setMaterial: (m) => set({ material: m }),
+
   engineReady: false,
   setEngineReady: (t) => set({ engineReady: t }),
 

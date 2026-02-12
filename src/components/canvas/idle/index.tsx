@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import CanvasHeader from '@/components/canvas/base/canvas-header';
-import { ReactNode, RefObject, useEffect, useMemo, useState } from 'react';
+import { ReactNode, RefObject, useEffect, useState } from 'react';
 import { Engine } from '@/lib/flashing/engine/engine';
 import { Button } from '@/components/ui/button';
 import { Drawing, Remove, Resize } from '@/components/icons';
@@ -47,6 +47,12 @@ export default function IdleModeUI({ engine }: { engine: RefObject<Engine> }): R
     engine.current?.renderer.centerRenderedContentAnimated();
   };
 
+  const onCanvasComplete = () => {
+    if (!engine.current) return;
+    engine.current.setMode('color-side');
+    engine.current.renderer.centerRenderedContentAnimated();
+  };
+
   return (
     <>
       <DropdownMenu
@@ -62,7 +68,6 @@ export default function IdleModeUI({ engine }: { engine: RefObject<Engine> }): R
               }));
             }, 150);
           }
-          // dropdown is opening
           setModeProps((prev) => ({ ...prev, openLineDropdown: open }));
         }}
       >
@@ -113,7 +118,12 @@ export default function IdleModeUI({ engine }: { engine: RefObject<Engine> }): R
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
       >
-        <CanvasHeader onUndo={onUndo} onRedo={onRedo} />
+        <CanvasHeader
+          onUndo={onUndo}
+          onRedo={onRedo}
+          title={'Overview'}
+          onNext={onCanvasComplete}
+        />
       </motion.header>
 
       <motion.div

@@ -6,7 +6,7 @@ import CanvasSide from '../base/canvas-side';
 import CanvasNav from '../base/canvas-nav';
 import { BothEndsBlockedAlertDialog } from './both-ends-bloacked-alert';
 import { RemoveFoldAlertDialog } from './remove-fold-alert';
-import { Drawing, Remove, Resize } from '@/components/icons';
+import { Remove, Resize } from '@/components/icons';
 import { graphStore } from '@/lib/flashing/store/store';
 import {
   DropdownMenu,
@@ -54,6 +54,12 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
   const onRedo = () => {
     graphStore.getState().redo();
     engine.current?.renderer.centerRenderedContentAnimated();
+  };
+
+  const onCanvasComplete = () => {
+    if (!engine.current) return;
+    engine.current.setMode('color-side');
+    engine.current.renderer.centerRenderedContentAnimated();
   };
 
   return (
@@ -133,16 +139,7 @@ export default function DrawModeUI({ engine }: { engine: RefObject<Engine> }): R
         }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
       >
-        <CanvasHeader
-          onUndo={onUndo}
-          onRedo={onRedo}
-          title={
-            <>
-              <Drawing className="size-5" />
-              Draw
-            </>
-          }
-        />
+        <CanvasHeader onUndo={onUndo} onRedo={onRedo} title={<>Draw</>} onNext={onCanvasComplete} />
       </motion.header>
 
       <motion.div

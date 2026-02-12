@@ -1,4 +1,4 @@
-import { CircleQuestion, CrushFold } from '@/components/icons';
+import { CircleQuestion } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Item, ItemActions, ItemContent } from '@/components/ui/item';
 import { Check, X } from 'lucide-react';
@@ -17,35 +17,30 @@ export default function FoldModeHeader({
   return (
     <header className="z-5 fixed top-0 w-full flex flex-col">
       <div className="relative flex items-center justify-between w-full bg-background border-b-2 py-2 px-2">
-        {componentProps.canApply ? (
-          <CancelAlertDialog onAction={onSave} onCancel={onCancel}>
-            <Button variant="ghost" size="icon-lg">
+        <div className="flex items-center gap-2">
+          {componentProps.canApply ? (
+            <CancelAlertDialog onAction={onSave} onCancel={onCancel}>
+              <Button variant="ghost" size="icon-lg">
+                <X />
+              </Button>
+            </CancelAlertDialog>
+          ) : (
+            <Button variant="ghost" size="icon-lg" onClick={onCancel}>
               <X />
             </Button>
-          </CancelAlertDialog>
-        ) : (
-          <Button variant="ghost" size="icon-lg" onClick={onCancel}>
-            <X />
-          </Button>
-        )}
+          )}
+          <p className="text-md font-semibold">Crush Fold</p>
+        </div>
 
         <Button variant="ghost" size="lg" disabled={!componentProps.canApply} onClick={onSave}>
-          Apply
+          Apply Crush Fold
           <Check />
         </Button>
-
-        <p className="absolute left-1/2 -translate-x-1/2 text-md font-semibold gap-2 flex items-center rounded-md">
-          <CrushFold className="size-5" />
-          Crush Fold
-        </p>
       </div>
       <div className="px-4 pt-2 max-w-100 mx-auto">
         <Item className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 shadow-md">
           <ItemContent>
-            <p>
-              <span className="font-bold">Crush Fold.</span> Crush Folds are typically added at the
-              end of the process. Choose the start/end to add a crush fold.
-            </p>
+            <p>Select the start or end point to apply a crush fold.</p>
           </ItemContent>
           <ItemActions>
             <Button variant="ghost" size="icon-lg" className="bg-background rounded-lg shadow-md">

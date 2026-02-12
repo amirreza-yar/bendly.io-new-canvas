@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Engine } from '@/lib/flashing/engine/engine';
 import { DrawMode } from '@/lib/flashing/engine/modes/draw';
 import { graphStore } from '@/lib/flashing/store/store';
@@ -7,20 +7,9 @@ import { useGraphStore } from '@/lib/flashing/store/useStore';
 import { Node } from '@/lib/flashing/types/types';
 import ModeComponent from '@/lib/flashing/components/mode';
 import { PolygonAlertDialog } from '@/components/canvas/base/polygon-alert';
+import CanvasLoader from '@/components/canvas/base/canvas-loader';
+import SelectMaterialDialog from '@/components/canvas/base/material';
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Spotlight } from 'lucide-react';
-
-// eslint-disable-next-line
 const demoData: Node[] = [
   {
     node_id: 'gwomd9',
@@ -65,6 +54,9 @@ export default function GraphPage() {
   const engineReady = useGraphStore((s) => s.engineReady);
   const openPolygonAlert = useGraphStore((s) => s.openPolygonAlert);
 
+  const [openMaterialDialog, setOpenMaterialDialog] = useState<boolean>(false);
+  const material = useGraphStore((s) => s.material);
+
   useEffect(() => {
     const prevent = (e: Event) => e.preventDefault();
 
@@ -88,6 +80,7 @@ export default function GraphPage() {
     const drawMode = new DrawMode();
 
     eng.setMode(drawMode);
+    // eng.setMode('color-side');
 
     engine.current = eng;
 
@@ -107,38 +100,33 @@ export default function GraphPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (!material) {
+      timer = setTimeout(() => {
+        setOpenMaterialDialog(true);
+      }, 300);
+    }
+
+    return () => clearTimeout(timer);
+  }, [material]);
+
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       {!engineReady ? (
-        <div className="fixed text-2xl w-screen h-screen flex items-center justify-center">
-          Rendering...
-        </div>
+        <CanvasLoader />
       ) : (
         <>
           <ModeComponent engine={engine} />
+          {/* <SelectMaterialDialog
+            openDialog={openMaterialDialog}
+            setOpenDialog={setOpenMaterialDialog}
+          /> */}
+          <PolygonAlertDialog openPolygonAlert={openPolygonAlert} />
         </>
       )}
 
-      <PolygonAlertDialog openPolygonAlert={openPolygonAlert} />
-
-      <AlertDialog defaultOpen>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogMedia className="bg-blue-50 text-orange-700">
-              <Spotlight className="size-8" />
-            </AlertDialogMedia>
-            <AlertDialogTitle>Welcome!</AlertDialogTitle>
-            <AlertDialogDescription>
-              This is the new Bendly.io canvas. Please use mobile devices to have the best
-              experience. <br />
-              Thank you for using Bendly.io!
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>Let&apos;s Go!</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* <WelcomeDialog /> */}
 
       <div
         ref={containerRef}
